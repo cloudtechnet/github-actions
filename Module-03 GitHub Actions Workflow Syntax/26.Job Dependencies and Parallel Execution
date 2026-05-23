@@ -1,0 +1,773 @@
+# GitHub Actions – Job Dependencies and Parallel Execution
+
+In GitHub Actions, workflows are made of multiple jobs.
+
+These jobs can:
+
+* Run independently
+* Run simultaneously (parallel execution)
+* Wait for other jobs (dependencies)
+
+Understanding dependencies and parallel execution is very important for building:
+
+* CI/CD pipelines
+* DevOps automation
+* Enterprise workflows
+* Fast testing systems
+
+---
+
+# What is a Job in GitHub Actions?
+
+A job is a group of steps executed on a runner.
+
+Example:
+
+```yaml id="58v6cf"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+```
+
+Here:
+
+* `build` is a job
+* Runs on Ubuntu runner
+
+---
+
+# Workflow Structure
+
+```text id="jlwm2f"
+Workflow
+   ├── Job 1
+   ├── Job 2
+   └── Job 3
+```
+
+Jobs may run:
+
+* Sequentially
+  OR
+* Parallelly
+
+---
+
+# Default Behavior of Jobs
+
+By default:
+
+> All jobs run in parallel.
+
+---
+
+# Example
+
+```yaml id="r17w2p"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Building"
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Testing"
+```
+
+---
+
+# What Happens?
+
+Both jobs start at same time.
+
+```text id="zxb7b0"
+build  ───────►
+test   ───────►
+```
+
+---
+
+# Why Parallel Execution is Useful
+
+Benefits:
+
+| Benefit               | Description                |
+| --------------------- | -------------------------- |
+| Faster pipelines      | Multiple jobs run together |
+| Reduced CI time       | Saves build time           |
+| Better resource usage | Efficient execution        |
+| Independent tasks     | Jobs isolated              |
+
+---
+
+# Example Real-World Parallel Jobs
+
+| Job           | Purpose            |
+| ------------- | ------------------ |
+| frontend-test | Test frontend      |
+| backend-test  | Test backend       |
+| lint          | Code quality check |
+| security-scan | Vulnerability scan |
+
+All can run together.
+
+---
+
+# 1. Parallel Execution Example
+
+---
+
+# Workflow
+
+```yaml id="g5f0xr"
+name: Parallel Jobs
+
+on: push
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Frontend Testing"
+
+  backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Backend Testing"
+
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Security Scanning"
+```
+
+---
+
+# Execution Flow
+
+```text id="0k5o5e"
+frontend  ─────►
+backend   ─────►
+security  ─────►
+```
+
+All start simultaneously.
+
+---
+
+# Important Note
+
+Each job gets:
+
+* Separate runner
+* Separate environment
+* Separate filesystem
+
+Jobs do NOT share files automatically.
+
+---
+
+# What are Job Dependencies?
+
+Dependencies mean:
+
+> One job waits for another job to complete before starting.
+
+GitHub Actions uses:
+
+```yaml id="9skcim"
+needs:
+```
+
+---
+
+# Syntax
+
+```yaml id="8kpr0x"
+needs: build
+```
+
+Meaning:
+
+> Current job waits for `build` job.
+
+---
+
+# 2. Sequential Job Execution
+
+---
+
+# Example
+
+```yaml id="2t2f0o"
+name: Sequential Jobs
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Building application"
+
+  test:
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Running tests"
+
+  deploy:
+    needs: test
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Deploying application"
+```
+
+---
+
+# Execution Flow
+
+```text id="ux5rlj"
+build ───► test ───► deploy
+```
+
+---
+
+# How It Works
+
+| Job    | Waits For |
+| ------ | --------- |
+| build  | Nothing   |
+| test   | build     |
+| deploy | test      |
+
+---
+
+# Real-World CI/CD Pipeline
+
+```text id="5yfy7h"
+Code Push
+   ↓
+Build
+   ↓
+Test
+   ↓
+Security Scan
+   ↓
+Deploy
+```
+
+---
+
+# 3. Multiple Job Dependencies
+
+A job can wait for multiple jobs.
+
+---
+
+# Example
+
+```yaml id="kr2z4l"
+jobs:
+  frontend-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Frontend Test"
+
+  backend-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Backend Test"
+
+  deploy:
+    needs: [frontend-test, backend-test]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Deploying"
+```
+
+---
+
+# Execution Flow
+
+```text id="z13e0m"
+frontend-test ──►
+                  ├──► deploy
+backend-test  ──►
+```
+
+Deploy starts only after BOTH jobs succeed.
+
+---
+
+# 4. Dependency Failure Behavior
+
+Important rule:
+
+> If dependency job fails, dependent jobs are skipped.
+
+---
+
+# Example
+
+```yaml id="95uznn"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: exit 1
+
+  deploy:
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Deploying"
+```
+
+---
+
+# Result
+
+| Job    | Status    |
+| ------ | --------- |
+| build  | ❌ Failed  |
+| deploy | ⏭ Skipped |
+
+---
+
+# Why?
+
+Because:
+
+```yaml id="7g8fyy"
+needs: build
+```
+
+requires successful completion.
+
+---
+
+# 5. Using always() with Dependencies
+
+Sometimes you want jobs to run even after failures.
+
+Use:
+
+```yaml id="k8fdrw"
+if: always()
+```
+
+---
+
+# Example
+
+```yaml id="94gq0q"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: exit 1
+
+  cleanup:
+    needs: build
+
+    if: always()
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Cleanup running"
+```
+
+---
+
+# Result
+
+| Job     | Status   |
+| ------- | -------- |
+| build   | ❌ Failed |
+| cleanup | ✅ Runs   |
+
+---
+
+# Real Use Cases
+
+| Use Case      | Example             |
+| ------------- | ------------------- |
+| Cleanup       | Delete temp files   |
+| Notifications | Send alerts         |
+| Log uploads   | Upload failure logs |
+
+---
+
+# 6. Dependency Outputs Between Jobs
+
+Jobs can share outputs.
+
+---
+
+# Step 1 – Create Output
+
+```yaml id="c8xqlt"
+echo "version=1.0" >> $GITHUB_OUTPUT
+```
+
+---
+
+# Step 2 – Define Job Output
+
+```yaml id="y7xz5x"
+outputs:
+  app_version: ${{ steps.version.outputs.version }}
+```
+
+---
+
+# Step 3 – Access in Another Job
+
+```yaml id="u7fmxj"
+${{ needs.build.outputs.app_version }}
+```
+
+---
+
+# Complete Example
+
+```yaml id="52of0w"
+name: Job Outputs
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.setver.outputs.version }}
+
+    steps:
+      - id: setver
+        run: echo "version=2.0" >> $GITHUB_OUTPUT
+
+  deploy:
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Deploying version ${{ needs.build.outputs.version }}"
+```
+
+---
+
+# Output
+
+```text id="tbk4f3"
+Deploying version 2.0
+```
+
+---
+
+# 7. Parallel + Sequential Combination
+
+Most real workflows combine both.
+
+---
+
+# Example
+
+```yaml id="ek1i1x"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Building"
+
+  frontend-test:
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Frontend Tests"
+
+  backend-test:
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Backend Tests"
+
+  deploy:
+    needs: [frontend-test, backend-test]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Deploying"
+```
+
+---
+
+# Execution Flow
+
+```text id="k4g6jw"
+           ┌──► frontend-test ──┐
+build ─────┤                    ├──► deploy
+           └──► backend-test ──┘
+```
+
+---
+
+# Benefits
+
+* Faster execution
+* Better organization
+* Production-ready pipelines
+
+---
+
+# 8. Matrix Parallel Execution
+
+Matrix strategy automatically creates parallel jobs.
+
+---
+
+# Example
+
+```yaml id="wv8wjt"
+strategy:
+  matrix:
+    node-version: [16, 18, 20]
+```
+
+---
+
+# Full Example
+
+```yaml id="x3x6v2"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16, 18, 20]
+
+    steps:
+      - run: echo "Testing Node ${{ matrix.node-version }}"
+```
+
+---
+
+# Execution
+
+```text id="1xlkdn"
+Node 16 ──►
+Node 18 ──►
+Node 20 ──►
+```
+
+All run simultaneously.
+
+---
+
+# 9. Real-World Enterprise CI/CD Example
+
+---
+
+# Scenario
+
+A company pipeline:
+
+1. Build application
+2. Run frontend/backend tests in parallel
+3. Security scan
+4. Deploy
+
+---
+
+# Workflow
+
+```yaml id="3q53c0"
+name: Enterprise CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Building App"
+
+  frontend-test:
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Frontend Testing"
+
+  backend-test:
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Backend Testing"
+
+  security-scan:
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Security Scan"
+
+  deploy:
+    needs:
+      - frontend-test
+      - backend-test
+      - security-scan
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Deploying to Production"
+```
+
+---
+
+# Pipeline Flow
+
+```text id="3x4sgx"
+                ┌──► frontend-test ──┐
+                │                    │
+build ──────────┼──► backend-test ───┼──► deploy
+                │                    │
+                └──► security-scan ──┘
+```
+
+---
+
+# 10. Best Practices
+
+| Best Practice                    | Reason             |
+| -------------------------------- | ------------------ |
+| Run independent jobs in parallel | Faster CI          |
+| Use dependencies for deployment  | Safety             |
+| Separate test jobs               | Better scalability |
+| Use outputs carefully            | Data sharing       |
+| Use `always()` for cleanup       | Reliability        |
+
+---
+
+# 11. Common Mistakes
+
+---
+
+# Mistake 1 – Forgetting needs
+
+Without:
+
+```yaml id="12wz8u"
+needs:
+```
+
+jobs run in parallel unexpectedly.
+
+---
+
+# Mistake 2 – Assuming jobs share files
+
+Each job has separate runner.
+
+Files must be shared using:
+
+* artifacts
+* cache
+
+---
+
+# Mistake 3 – Circular Dependencies
+
+Wrong:
+
+```yaml id="p0n9vq"
+job1 needs job2
+job2 needs job1
+```
+
+Not allowed.
+
+---
+
+# 12. Parallel vs Sequential Execution
+
+| Feature    | Parallel     | Sequential  |
+| ---------- | ------------ | ----------- |
+| Speed      | Faster       | Slower      |
+| Dependency | Independent  | Dependent   |
+| Use Case   | Tests, scans | Deployments |
+| Trigger    | Default      | `needs`     |
+
+---
+
+# Summary
+
+| Concept       | Purpose                |
+| ------------- | ---------------------- |
+| Parallel Jobs | Faster execution       |
+| `needs`       | Job dependencies       |
+| Job Outputs   | Share data             |
+| `always()`    | Run after failure      |
+| Matrix Builds | Multiple parallel jobs |
+
+---
+
+# Final Understanding
+
+Job Dependencies and Parallel Execution are core concepts in GitHub Actions for building scalable CI/CD pipelines.
+
+They help create:
+
+* Faster workflows
+* Organized automation
+* Reliable deployments
+* Enterprise DevOps systems
+* Efficient testing pipelines
+
+Using:
+
+* Parallel execution
+* Dependencies
+* Outputs
+* Matrix builds
+
+you can design professional production-grade GitHub Actions workflows.

@@ -1,0 +1,446 @@
+# GitHub Actions – Runner Labels and Groups
+
+In GitHub Actions, **Runner Labels and Groups** help you control *which self-hosted runner executes a workflow*.
+
+They are very important in real-world CI/CD systems because they allow:
+
+* Targeting specific machines
+* Separating environments (dev, test, prod)
+* Controlling hardware usage (GPU, high-memory)
+* Improving security and organization
+
+---
+
+# 1. What are Runner Labels?
+
+A **label** is a tag attached to a runner.
+
+It tells GitHub:
+
+> “This runner has these capabilities.”
+
+---
+
+## Default Labels
+
+Every self-hosted runner automatically gets:
+
+| Label                   | Meaning            |
+| ----------------------- | ------------------ |
+| self-hosted             | It is your machine |
+| linux / windows / macos | Operating system   |
+
+---
+
+## Example Labels
+
+You can add custom labels like:
+
+* production
+* staging
+* gpu
+* high-memory
+* docker
+* test-runner
+
+---
+
+# 2. What are Runner Groups?
+
+A **runner group** is a collection of runners.
+
+It helps you:
+
+* Organize runners logically
+* Control access at organization level
+* Separate environments
+* Improve security
+
+---
+
+## Example Groups
+
+| Group Name  | Purpose             |
+| ----------- | ------------------- |
+| Development | Dev testing runners |
+| QA          | Testing environment |
+| Production  | Live deployments    |
+| GPU Cluster | AI/ML workloads     |
+
+---
+
+# 3. Why Labels and Groups are Important?
+
+Without them:
+
+* Any runner may pick any job ❌
+* Production jobs may run on test machines ❌
+* No control over environment ❌
+
+With them:
+
+* Precise control ✔
+* Safer deployments ✔
+* Better scalability ✔
+
+---
+
+# 4. Runner Labels in Action
+
+---
+
+## Step 1 – Assign Labels While Configuring Runner
+
+When setting up runner:
+
+```bash
+./config.sh --labels linux,production,docker
+```
+
+Now this runner has:
+
+```text
+self-hosted, linux, production, docker
+```
+
+---
+
+# 5. Using Labels in Workflow
+
+---
+
+## Example 1 – Basic Label Usage
+
+```yaml id="jlwm1a"
+jobs:
+  build:
+    runs-on:
+      - self-hosted
+      - linux
+
+    steps:
+      - name: Show Message
+        run: echo "Running on Linux Self Hosted Runner"
+```
+
+---
+
+## What happens?
+
+GitHub selects ANY runner that has:
+
+* self-hosted
+* linux
+
+---
+
+# 6. Using Custom Labels (Real Example)
+
+---
+
+## Example 2 – Production Deployment
+
+```yaml id="jlwm2b"
+jobs:
+  deploy:
+    runs-on:
+      - self-hosted
+      - linux
+      - production
+
+    steps:
+      - name: Deploy Application
+        run: echo "Deploying to Production Server"
+```
+
+---
+
+## Meaning
+
+Only runners with:
+
+* production label
+* linux
+* self-hosted
+
+will execute this job.
+
+---
+
+# 7. Multiple Label Matching (AND Logic)
+
+GitHub uses **AND logic**.
+
+---
+
+## Example
+
+```yaml id="jlwm3c"
+runs-on:
+  - self-hosted
+  - linux
+  - gpu
+```
+
+---
+
+## Meaning
+
+Runner must have ALL:
+
+* self-hosted
+* linux
+* gpu
+
+Otherwise job will wait.
+
+---
+
+# 8. Real-World Label Example
+
+---
+
+## Scenario
+
+Company has different machines:
+
+| Runner            | Labels                         |
+| ----------------- | ------------------------------ |
+| Dev Machine       | self-hosted, linux, dev        |
+| QA Server         | self-hosted, linux, qa         |
+| Production Server | self-hosted, linux, production |
+| AI Server         | self-hosted, linux, gpu        |
+
+---
+
+## Workflow Example
+
+```yaml id="jlwm4d"
+jobs:
+  ai_training:
+    runs-on:
+      - self-hosted
+      - linux
+      - gpu
+
+    steps:
+      - name: Train Model
+        run: python train.py
+```
+
+---
+
+## Result
+
+Only AI Server runs this job.
+
+---
+
+# 9. Runner Groups (Organization Level)
+
+Runner groups are configured in:
+
+```text
+Settings → Actions → Runner groups
+```
+
+---
+
+## Example Groups
+
+### Development Group
+
+* cheap machines
+* safe for testing
+
+### Production Group
+
+* secure servers
+* deployment-only
+
+### GPU Group
+
+* expensive hardware
+* AI workloads
+
+---
+
+# 10. Assigning Runners to Groups
+
+When configuring runner:
+
+```bash
+./config.sh --runnergroup production
+```
+
+Now runner belongs to:
+
+```text
+Production Group
+```
+
+---
+
+# 11. Using Runner Groups in Workflow
+
+GitHub does NOT directly use group name in YAML.
+
+Instead, groups control **which repos can use which runners**.
+
+---
+
+## Example Setup
+
+| Group      | Allowed Repos  |
+| ---------- | -------------- |
+| Production | only main repo |
+| Dev        | all repos      |
+
+---
+
+# 12. Labels + Groups Together
+
+Best practice:
+
+* Groups = Access control
+* Labels = Job selection
+
+---
+
+## Example
+
+```text
+Runner Group: Production
+Labels: self-hosted, linux, production, docker
+```
+
+---
+
+# 13. Full Real-World CI/CD Example
+
+---
+
+## Workflow
+
+```yaml id="jlwm5e"
+name: Enterprise Deployment Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on:
+      - self-hosted
+      - linux
+      - docker
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker Image
+        run: docker build -t myapp .
+
+  deploy:
+    needs: build
+    runs-on:
+      - self-hosted
+      - linux
+      - production
+
+    steps:
+      - name: Deploy Application
+        run: kubectl apply -f deployment.yaml
+```
+
+---
+
+## Flow
+
+```text id="jlwm6f"
+Build Job → Docker Runner
+Deploy Job → Production Runner
+```
+
+---
+
+# 14. Waiting Behavior (Important)
+
+If no runner matches labels:
+
+```text id="jlwm7g"
+Job stays in queued state
+```
+
+until a matching runner becomes available.
+
+---
+
+# 15. Best Practices
+
+| Best Practice                 | Reason          |
+| ----------------------------- | --------------- |
+| Use clear labels              | Avoid confusion |
+| Separate prod/dev runners     | Safety          |
+| Use minimal required labels   | Flexibility     |
+| Use groups for access control | Security        |
+| Monitor runner usage          | Stability       |
+
+---
+
+# 16. Common Mistakes
+
+---
+
+## Mistake 1 – Wrong Label Combination
+
+```yaml
+runs-on: [self-hosted, gpu]
+```
+
+If no GPU runner exists → job stuck.
+
+---
+
+## Mistake 2 – Overusing Labels
+
+Too many labels reduce runner flexibility.
+
+---
+
+## Mistake 3 – Mixing Dev and Prod
+
+Dangerous in real systems.
+
+---
+
+# 17. Summary
+
+| Concept     | Meaning                              |
+| ----------- | ------------------------------------ |
+| Labels      | Tags to identify runner capabilities |
+| Groups      | Organization-level runner management |
+| self-hosted | Your machine                         |
+| Matching    | AND-based selection                  |
+| Use case    | Control CI/CD execution              |
+
+---
+
+# Final Understanding
+
+Runner Labels and Groups in GitHub Actions allow you to precisely control where workflows run.
+
+They help you:
+
+* Route jobs to correct machines
+* Separate environments (dev/qa/prod)
+* Manage hardware-specific tasks (GPU, docker)
+* Improve security and organization
+* Scale CI/CD systems efficiently
+
+👉 Labels decide **WHERE jobs run**
+👉 Groups decide **WHO can use runners**
+
+Together, they form the backbone of enterprise-grade GitHub Actions infrastructure.

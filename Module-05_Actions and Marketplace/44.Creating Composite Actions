@@ -1,0 +1,162 @@
+## GitHub Actions: 44. Creating Composite Actions
+
+**Composite Actions** are custom GitHub Actions that combine multiple workflow steps into one reusable action.
+
+Instead of writing the same commands again and again in every workflow, we can create one composite action and reuse it.
+
+## Why use Composite Actions?
+
+Composite actions are useful for:
+
+✅ Reusing common steps
+✅ Reducing duplicate workflow code
+✅ Keeping workflow files clean
+✅ Standardizing build/test/deploy process
+✅ Creating company-level automation templates
+
+## Folder Structure
+
+```text
+.github/actions/java-build/
+└── action.yml
+```
+
+## Example: Create Composite Action for Java Maven Build
+
+### Step 1: Create `action.yml`
+
+```yaml
+name: Java Maven Build Composite Action
+description: Setup Java and build Maven project
+
+inputs:
+  java-version:
+    description: Java version to install
+    required: true
+    default: '17'
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: ${{ inputs.java-version }}
+
+    - name: Build Maven Project
+      shell: bash
+      run: mvn clean install
+```
+
+## Step 2: Use Composite Action in Workflow
+
+Create workflow file:
+
+```text
+.github/workflows/build.yml
+```
+
+```yaml
+name: Java Build Using Composite Action
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Java Build Composite Action
+        uses: ./.github/actions/java-build
+        with:
+          java-version: '17'
+```
+
+## How it works
+
+When code is pushed to `main`:
+
+1. GitHub Actions starts workflow.
+2. `actions/checkout@v4` downloads repository code.
+3. Workflow calls local composite action.
+4. Composite action installs Java 17.
+5. Composite action runs Maven build.
+6. Build result is shown in Actions logs.
+
+## Simple Example: Greeting Composite Action
+
+Folder:
+
+```text
+.github/actions/greeting/
+└── action.yml
+```
+
+```yaml
+name: Greeting Composite Action
+description: Prints welcome message
+
+inputs:
+  name:
+    description: Student name
+    required: true
+    default: Student
+
+runs:
+  using: composite
+  steps:
+    - name: Print Message
+      shell: bash
+      run: |
+        echo "Hello ${{ inputs.name }}"
+        echo "Welcome to GitHub Actions Composite Actions"
+```
+
+Workflow:
+
+```yaml
+name: Greeting Workflow
+
+on: push
+
+jobs:
+  greet:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Greeting Action
+        uses: ./.github/actions/greeting
+        with:
+          name: Priya
+```
+
+## Composite Action vs Normal Workflow Steps
+
+| Normal Workflow                    | Composite Action        |
+| ---------------------------------- | ----------------------- |
+| Steps written directly in workflow | Steps stored separately |
+| Repeated in multiple files         | Reusable                |
+| Hard to maintain                   | Easy to maintain        |
+| Good for one project               | Good for many projects  |
+
+## Best Practices
+
+Use clear folder names.
+Add inputs for reusable values.
+Always mention `shell` for run commands.
+Keep actions small and focused.
+Do not store secrets inside action files.
+Use GitHub Secrets in workflows.
+
+## Simple Definition
+
+**Composite Action means grouping multiple GitHub Actions steps into one reusable custom action.**

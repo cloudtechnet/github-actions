@@ -1,0 +1,740 @@
+# GitHub Actions – Configure Self-Hosted Runner on Linux
+
+A Self-Hosted Runner on Linux allows GitHub Actions workflows to run on your own Linux machine instead of GitHub-hosted virtual machines.
+
+This is commonly used for:
+
+* Enterprise CI/CD
+* Internal deployments
+* GPU workloads
+* Kubernetes deployments
+* Custom software environments
+* Persistent build systems
+
+---
+
+# What is a Linux Self-Hosted Runner?
+
+A Linux self-hosted runner is:
+
+> A Linux machine connected to GitHub Actions for executing workflow jobs.
+
+The Linux machine can be:
+
+* Ubuntu server
+* CentOS server
+* Debian VM
+* Cloud VM
+* Local Linux machine
+* Docker container
+
+---
+
+# Workflow Architecture
+
+```text id="jlwmra"
+Developer Pushes Code
+          ↓
+GitHub Actions Triggered
+          ↓
+Linux Self-Hosted Runner Receives Job
+          ↓
+Workflow Executes on Linux Machine
+          ↓
+Results Sent Back to GitHub
+```
+
+---
+
+# Why Configure Self-Hosted Runner on Linux?
+
+Linux runners are widely used because Linux provides:
+
+| Advantage              | Description                 |
+| ---------------------- | --------------------------- |
+| Better performance     | Faster execution            |
+| Docker support         | Excellent container support |
+| Kubernetes integration | DevOps friendly             |
+| Lower resource usage   | Efficient CI/CD             |
+| Open-source ecosystem  | Large tool support          |
+
+---
+
+# Prerequisites
+
+Before configuring runner, ensure:
+
+| Requirement              | Needed               |
+| ------------------------ | -------------------- |
+| Linux machine            | Ubuntu/Debian/CentOS |
+| GitHub repository access | Admin permissions    |
+| Internet connection      | Required             |
+| Terminal access          | SSH or local         |
+| Sufficient permissions   | sudo access          |
+
+---
+
+# Supported Linux Distributions
+
+GitHub supports:
+
+| Distribution | Supported |
+| ------------ | --------- |
+| Ubuntu       | ✅         |
+| Debian       | ✅         |
+| CentOS       | ✅         |
+| Red Hat      | ✅         |
+| Fedora       | ✅         |
+
+---
+
+# Example Environment
+
+This guide uses:
+
+| Component   | Value          |
+| ----------- | -------------- |
+| OS          | Ubuntu 22.04   |
+| Repository  | sample-project |
+| Runner Name | linux-runner   |
+
+---
+
+# Step 1 – Open GitHub Repository
+
+Go to:
+
+```text id="jlwmzu"
+Repository → Settings → Actions → Runners
+```
+
+---
+
+# Step 2 – Add New Runner
+
+Click:
+
+```text id="jlwm2m"
+New self-hosted runner
+```
+
+---
+
+# Step 3 – Select Linux
+
+GitHub displays setup instructions for Linux.
+
+---
+
+# Step 4 – Create Runner Directory
+
+On Linux machine:
+
+```bash id="jlwmvi"
+mkdir actions-runner
+
+cd actions-runner
+```
+
+---
+
+# Explanation
+
+| Command | Purpose              |
+| ------- | -------------------- |
+| mkdir   | Create runner folder |
+| cd      | Enter directory      |
+
+---
+
+# Step 5 – Download Runner Package
+
+GitHub provides download command.
+
+Example:
+
+```bash id="jlwm8u"
+curl -o actions-runner-linux-x64-2.317.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.317.0/actions-runner-linux-x64-2.317.0.tar.gz
+```
+
+---
+
+# What This Does
+
+Downloads GitHub Actions runner software.
+
+---
+
+# Step 6 – Extract Runner Package
+
+```bash id="jlwmpt"
+tar xzf ./actions-runner-linux-x64-2.317.0.tar.gz
+```
+
+---
+
+# Result
+
+Runner files extracted.
+
+---
+
+# Runner Directory Structure
+
+```text id="jlwm47"
+actions-runner/
+ ├── config.sh
+ ├── run.sh
+ ├── svc.sh
+ ├── bin/
+ ├── externals/
+```
+
+---
+
+# Important Files
+
+| File      | Purpose          |
+| --------- | ---------------- |
+| config.sh | Configure runner |
+| run.sh    | Start runner     |
+| svc.sh    | Install service  |
+
+---
+
+# Step 7 – Configure Runner
+
+GitHub provides configuration command.
+
+Example:
+
+```bash id="jlwmeq"
+./config.sh --url https://github.com/owner/repository --token YOUR_TOKEN
+```
+
+---
+
+# Explanation
+
+| Parameter | Purpose              |
+| --------- | -------------------- |
+| --url     | Repository URL       |
+| --token   | Authentication token |
+
+---
+
+# What Happens?
+
+Configuration process asks:
+
+| Question     | Example           |
+| ------------ | ----------------- |
+| Runner name  | linux-runner      |
+| Runner group | Default           |
+| Labels       | linux, production |
+| Work folder  | _work             |
+
+---
+
+# Example Setup
+
+```text id="jlwmg7"
+Enter runner name: linux-runner
+Enter labels: linux,production
+```
+
+---
+
+# Step 8 – Start Runner
+
+Start runner manually:
+
+```bash id="jlwm6u"
+./run.sh
+```
+
+---
+
+# Output Example
+
+```text id="jlwm41"
+Listening for Jobs
+```
+
+---
+
+# Runner Execution Flow
+
+```text id="jlwm8k"
+GitHub Workflow Triggered
+          ↓
+Runner Detects Job
+          ↓
+Workflow Downloaded
+          ↓
+Steps Execute
+          ↓
+Logs Uploaded
+```
+
+---
+
+# Step 9 – Verify Runner in GitHub
+
+Go to:
+
+```text id="jlwmcv"
+Settings → Actions → Runners
+```
+
+You should see:
+
+```text id="jlwmk8"
+linux-runner → Idle
+```
+
+---
+
+# Step 10 – Create Workflow Using Self-Hosted Runner
+
+---
+
+# Example Workflow
+
+```yaml id="jlwms1"
+name: Linux Self Hosted Workflow
+
+on: push
+
+jobs:
+  build:
+    runs-on:
+      - self-hosted
+      - linux
+
+    steps:
+      - name: Display Message
+        run: echo "Running on Linux Self-Hosted Runner"
+```
+
+---
+
+# What Happens?
+
+GitHub sends workflow to Linux runner.
+
+---
+
+# Output
+
+```text id="jlwm1l"
+Running on Linux Self-Hosted Runner
+```
+
+---
+
+# Using Labels in Linux Runner
+
+Labels help select specific runners.
+
+---
+
+# Example Labels
+
+```text id="jlwm1i"
+linux
+docker
+production
+gpu
+```
+
+---
+
+# Workflow Example
+
+```yaml id="jlwm2p"
+jobs:
+  deploy:
+    runs-on:
+      - self-hosted
+      - linux
+      - production
+```
+
+---
+
+# Meaning
+
+Workflow runs only on runner having:
+
+* self-hosted
+* linux
+* production
+
+labels.
+
+---
+
+# Running Runner as Background Service
+
+Manual runner stops after terminal closes.
+
+Better approach:
+
+Run as Linux service.
+
+---
+
+# Install Service
+
+```bash id="jlwmf3"
+sudo ./svc.sh install
+```
+
+---
+
+# Start Service
+
+```bash id="jlwm7o"
+sudo ./svc.sh start
+```
+
+---
+
+# Check Service Status
+
+```bash id="jlwm1v"
+sudo ./svc.sh status
+```
+
+---
+
+# Benefits of Service Mode
+
+| Benefit                 | Description             |
+| ----------------------- | ----------------------- |
+| Auto-start after reboot | Reliable                |
+| Background execution    | No open terminal needed |
+| Stable runner operation | Enterprise use          |
+
+---
+
+# Service Workflow
+
+```text id="jlwm9u"
+Linux Server Starts
+        ↓
+Runner Service Starts Automatically
+        ↓
+GitHub Jobs Processed
+```
+
+---
+
+# Installing Additional Tools
+
+Self-hosted Linux runners allow custom software installation.
+
+---
+
+# Example
+
+Install Docker:
+
+```bash id="jlwmbn"
+sudo apt update
+
+sudo apt install docker.io -y
+```
+
+---
+
+# Verify Installation
+
+```bash id="jlwmw9"
+docker --version
+```
+
+---
+
+# Real Use Cases
+
+| Tool        | Example                   |
+| ----------- | ------------------------- |
+| Docker      | Container builds          |
+| kubectl     | Kubernetes deployment     |
+| Terraform   | Infrastructure automation |
+| GPU drivers | AI/ML workloads           |
+
+---
+
+# Example – Docker Workflow
+
+```yaml id="jlwmlm"
+jobs:
+  docker-build:
+    runs-on:
+      - self-hosted
+      - linux
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker Image
+        run: docker build -t myapp .
+```
+
+---
+
+# Persistent Environment
+
+Unlike GitHub-hosted runners:
+
+Linux self-hosted runners are persistent.
+
+---
+
+# Example
+
+```text id="jlwmj4"
+Installed software remains available
+```
+
+after workflows finish.
+
+---
+
+# Benefits
+
+| Benefit             | Description              |
+| ------------------- | ------------------------ |
+| Faster builds       | No repeated installation |
+| Persistent cache    | Better performance       |
+| Custom environments | Flexible setup           |
+
+---
+
+# Security Considerations
+
+Self-hosted runners require proper security.
+
+---
+
+# Risks
+
+| Risk             | Description               |
+| ---------------- | ------------------------- |
+| Workflow attacks | Malicious code execution  |
+| Secret exposure  | Sensitive data risk       |
+| Network access   | Internal systems exposure |
+
+---
+
+# Security Best Practices
+
+| Practice                   | Reason        |
+| -------------------------- | ------------- |
+| Use dedicated server       | Isolation     |
+| Restrict repository access | Security      |
+| Keep runner updated        | Patches       |
+| Use firewall rules         | Protection    |
+| Avoid public repos         | Prevent abuse |
+
+---
+
+# Important Warning
+
+Do NOT use production database servers directly as runners.
+
+---
+
+# Updating Self-Hosted Runner
+
+GitHub may require runner updates.
+
+---
+
+# Update Example
+
+```bash id="jlwmji"
+./config.sh remove
+```
+
+Download latest runner and reconfigure.
+
+---
+
+# Removing Self-Hosted Runner
+
+Stop service:
+
+```bash id="jlwmkk"
+sudo ./svc.sh stop
+```
+
+Remove configuration:
+
+```bash id="jlwmy5"
+./config.sh remove
+```
+
+---
+
+# Real-World Enterprise Example
+
+---
+
+# Scenario
+
+Company deploys application to private Kubernetes cluster.
+
+GitHub-hosted runners cannot access internal network.
+
+Use Linux self-hosted runner.
+
+---
+
+# Workflow
+
+```yaml id="jlwmr3"
+name: Internal Kubernetes Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on:
+      - self-hosted
+      - linux
+      - production
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Application
+        run: npm run build
+
+      - name: Deploy to Kubernetes
+        run: kubectl apply -f deployment.yaml
+```
+
+---
+
+# Execution Flow
+
+```text id="jlwm7m"
+Push Code
+    ↓
+GitHub Workflow Triggered
+    ↓
+Linux Self-Hosted Runner Receives Job
+    ↓
+Build Application
+    ↓
+Deploy to Internal Kubernetes
+```
+
+---
+
+# Advantages of Linux Self-Hosted Runners
+
+| Advantage                 | Description              |
+| ------------------------- | ------------------------ |
+| Full control              | Custom environment       |
+| Docker/Kubernetes support | Excellent DevOps support |
+| Persistent cache          | Faster workflows         |
+| Internal network access   | Enterprise deployments   |
+| Flexible hardware         | GPU/high-memory systems  |
+
+---
+
+# Limitations
+
+| Limitation          | Description         |
+| ------------------- | ------------------- |
+| Manual maintenance  | User responsibility |
+| Security management | Must secure server  |
+| Infrastructure cost | Hardware/cloud cost |
+| Scaling complexity  | Manual scaling      |
+
+---
+
+# Common Mistakes
+
+---
+
+# Mistake 1 – Using Personal Machine
+
+Not recommended for production.
+
+---
+
+# Mistake 2 – Ignoring Security
+
+Can expose internal infrastructure.
+
+---
+
+# Mistake 3 – No Monitoring
+
+Runner failures may stop pipelines.
+
+---
+
+# Mistake 4 – Overloading Single Runner
+
+Too many jobs reduce performance.
+
+---
+
+# Best Practices
+
+| Best Practice               | Reason           |
+| --------------------------- | ---------------- |
+| Use dedicated Linux servers | Better isolation |
+| Use labels properly         | Target workflows |
+| Install as service          | Stable execution |
+| Keep software updated       | Security         |
+| Monitor runner health       | Reliability      |
+
+---
+
+# Summary
+
+| Concept                  | Description                |
+| ------------------------ | -------------------------- |
+| Linux self-hosted runner | User-managed Linux machine |
+| config.sh                | Configure runner           |
+| run.sh                   | Start runner               |
+| svc.sh                   | Service management         |
+| Labels                   | Runner targeting           |
+| Persistent environment   | Files/software remain      |
+
+---
+
+# Final Understanding
+
+Configuring a Linux self-hosted runner allows GitHub Actions workflows to execute on your own Linux infrastructure.
+
+This provides:
+
+* Full customization
+* Persistent environments
+* Internal network access
+* Advanced DevOps automation
+* Enterprise-grade CI/CD control
+
+Linux self-hosted runners are widely used for:
+
+* Kubernetes deployments
+* Docker builds
+* Internal enterprise systems
+* AI/ML pipelines
+* Secure production automation.

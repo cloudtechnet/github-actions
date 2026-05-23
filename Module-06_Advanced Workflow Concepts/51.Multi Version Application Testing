@@ -1,0 +1,215 @@
+## GitHub Actions: 51. Multi Version Application Testing
+
+**Multi Version Application Testing** means testing the same application with different software versions.
+
+Example:
+
+✅ Java 17
+✅ Java 21
+✅ Node.js 18
+✅ Node.js 20
+✅ Python 3.10
+✅ Python 3.11
+
+This helps confirm that the application works correctly across multiple versions.
+
+## Why it is useful
+
+Different users or servers may use different versions.
+
+For example:
+
+One server may use Java 17.
+Another server may use Java 21.
+A developer may use Node.js 18.
+Production may use Node.js 20.
+
+So we test the application with multiple versions before release.
+
+## Basic Matrix Syntax
+
+```yaml
+strategy:
+  matrix:
+    java-version: [17, 21]
+```
+
+Use it like this:
+
+```yaml
+java-version: ${{ matrix.java-version }}
+```
+
+## Example: Java Multi Version Testing
+
+```yaml
+name: Java Multi Version Testing
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        java-version: [17, 21]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java-version }}
+
+      - name: Run Maven Tests
+        run: mvn test
+```
+
+## Explanation
+
+This workflow runs 2 jobs:
+
+```text
+Job 1 → Java 17
+Job 2 → Java 21
+```
+
+So we can confirm the project works on both Java versions.
+
+## Node.js Multi Version Example
+
+```yaml
+name: Node.js Multi Version Testing
+
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Tests
+        run: npm test
+```
+
+This runs tests on:
+
+```text
+Node.js 18
+Node.js 20
+Node.js 22
+```
+
+## Python Multi Version Example
+
+```yaml
+name: Python Multi Version Testing
+
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Tests
+        run: pytest
+```
+
+## Multi Version + Multi OS Example
+
+```yaml
+name: Multi OS and Multi Version Testing
+
+on: push
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        java-version: [17, 21]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java-version }}
+
+      - name: Run Tests
+        run: mvn test
+```
+
+This creates:
+
+```text
+2 OS × 2 Java versions = 4 jobs
+```
+
+## Real-Time Use Case
+
+Before deploying a Java application, a company wants to check:
+
+```text
+Java 17 for current production
+Java 21 for future upgrade
+```
+
+Using matrix, both versions are tested automatically.
+
+## Best Practices
+
+Use stable versions.
+Use `fail-fast: false`.
+Test old and new supported versions.
+Remove unsupported versions.
+Use versioned actions like `actions/setup-java@v4`.
+Use matrix only for required versions to save time.
+
+## Simple Definition
+
+**Multi Version Application Testing means testing the same application automatically on multiple language or runtime versions using GitHub Actions matrix strategy.**

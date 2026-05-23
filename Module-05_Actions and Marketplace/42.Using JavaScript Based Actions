@@ -1,0 +1,200 @@
+## GitHub Actions: 42. Using JavaScript Based Actions
+
+**JavaScript based actions** are GitHub Actions written using **JavaScript/Node.js**.
+
+They run directly on the GitHub runner using Node.js, without creating a Docker container.
+
+## Why use JavaScript Based Actions?
+
+JavaScript actions are useful because:
+
+They run faster than Docker actions.
+They work on Linux, Windows, and macOS runners.
+They are good for API calls, file checks, validations, notifications, and custom automation.
+They can use npm packages.
+
+## Basic Folder Structure
+
+```text
+my-js-action/
+│
+├── action.yml
+├── index.js
+├── package.json
+└── node_modules/
+```
+
+## Step 1: Create `action.yml`
+
+```yaml
+name: JavaScript Greeting Action
+description: A simple JavaScript based GitHub Action
+
+inputs:
+  name:
+    description: Person name
+    required: true
+    default: Student
+
+runs:
+  using: node20
+  main: index.js
+```
+
+## Step 2: Create `index.js`
+
+```javascript
+const core = require('@actions/core');
+
+try {
+  const name = core.getInput('name');
+
+  console.log(`Hello ${name}`);
+  console.log('Welcome to JavaScript Based GitHub Actions');
+} catch (error) {
+  core.setFailed(error.message);
+}
+```
+
+## Step 3: Create `package.json`
+
+```json
+{
+  "name": "javascript-greeting-action",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "@actions/core": "^1.11.1"
+  }
+}
+```
+
+## Step 4: Install dependencies
+
+```bash
+npm install
+```
+
+## Step 5: Use this action in workflow
+
+Create:
+
+```text
+.github/workflows/js-action.yml
+```
+
+```yaml
+name: Use JavaScript Action
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  js-action-job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Custom JavaScript Action
+        uses: ./my-js-action
+        with:
+          name: Priya
+```
+
+## How it works
+
+When code is pushed to the `main` branch:
+
+1. GitHub starts the workflow.
+2. Repository code is downloaded using `actions/checkout`.
+3. GitHub reads `action.yml`.
+4. It runs `index.js` using Node.js.
+5. The action prints the greeting message.
+
+## Real-Time Example: Check Required File
+
+This action checks whether `README.md` exists or not.
+
+### `index.js`
+
+```javascript
+const core = require('@actions/core');
+const fs = require('fs');
+
+try {
+  const fileName = core.getInput('file-name');
+
+  if (fs.existsSync(fileName)) {
+    console.log(`${fileName} exists`);
+  } else {
+    core.setFailed(`${fileName} is missing`);
+  }
+} catch (error) {
+  core.setFailed(error.message);
+}
+```
+
+### `action.yml`
+
+```yaml
+name: File Check Action
+description: Check whether required file exists
+
+inputs:
+  file-name:
+    description: File name to check
+    required: true
+    default: README.md
+
+runs:
+  using: node20
+  main: index.js
+```
+
+### Workflow
+
+```yaml
+name: Check Required File
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  check-file:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Check README File
+        uses: ./my-js-action
+        with:
+          file-name: README.md
+```
+
+## JavaScript Action vs Docker Action
+
+| JavaScript Action              | Docker Action                  |
+| ------------------------------ | ------------------------------ |
+| Runs using Node.js             | Runs inside Docker container   |
+| Faster startup                 | Slower startup                 |
+| Works on Linux, Windows, macOS | Mostly Linux runner            |
+| Good for API/file operations   | Good for custom environments   |
+| Uses npm packages              | Uses Docker image dependencies |
+
+## Advantages
+
+Fast execution.
+Cross-platform support.
+Easy to write and maintain.
+Can use GitHub Actions toolkit.
+Good for custom CI/CD logic.
+
+## Simple Definition
+
+**JavaScript based actions are custom GitHub Actions written in JavaScript and executed using Node.js on the GitHub runner.**

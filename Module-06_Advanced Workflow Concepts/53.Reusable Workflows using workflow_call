@@ -1,0 +1,210 @@
+## GitHub Actions: 53. Reusable Workflows using `workflow_call`
+
+**Reusable Workflow** means creating one complete workflow and using it in multiple repositories or multiple workflow files.
+
+It is called using:
+
+```yaml
+on:
+  workflow_call:
+```
+
+## Why use Reusable Workflows?
+
+Reusable workflows help to:
+
+✅ Avoid repeated CI/CD code
+✅ Maintain one common workflow
+✅ Standardize build and deploy process
+✅ Reuse full jobs, not only steps
+✅ Manage company-level pipelines easily
+
+## Reusable Action vs Reusable Workflow
+
+| Reusable Action       | Reusable Workflow         |
+| --------------------- | ------------------------- |
+| Reuses steps          | Reuses full workflow/jobs |
+| Called inside `steps` | Called inside `jobs`      |
+| Small task reuse      | Complete pipeline reuse   |
+
+## Step 1: Create Reusable Workflow
+
+Create file:
+
+```text
+.github/workflows/reusable-java-build.yml
+```
+
+```yaml
+name: Reusable Java Build
+
+on:
+  workflow_call:
+    inputs:
+      java-version:
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.java-version }}
+
+      - name: Build Project
+        run: mvn clean install
+```
+
+## Step 2: Call Reusable Workflow
+
+Create another workflow:
+
+```text
+.github/workflows/main-ci.yml
+```
+
+```yaml
+name: Main CI Workflow
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  call-java-build:
+    uses: ./.github/workflows/reusable-java-build.yml
+    with:
+      java-version: '17'
+```
+
+## Explanation
+
+When code is pushed to `main`:
+
+1. `main-ci.yml` starts.
+2. It calls `reusable-java-build.yml`.
+3. Java version `17` is passed as input.
+4. Reusable workflow checks out code.
+5. Java is installed.
+6. Maven build runs.
+
+## Calling Reusable Workflow from Another Repository
+
+```yaml
+jobs:
+  call-shared-workflow:
+    uses: cloudtechnet/shared-workflows/.github/workflows/reusable-java-build.yml@v1
+    with:
+      java-version: '17'
+```
+
+Here:
+
+`cloudtechnet` → GitHub username/organization
+`shared-workflows` → repository name
+`.github/workflows/reusable-java-build.yml` → workflow path
+`@v1` → version tag
+
+## Example with Secrets
+
+Reusable workflow:
+
+```yaml
+name: Reusable Deploy Workflow
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+    secrets:
+      DEPLOY_TOKEN:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy Application
+        run: |
+          echo "Deploying to ${{ inputs.environment }}"
+          echo "Token is available securely"
+```
+
+Calling workflow:
+
+```yaml
+name: Call Deploy Workflow
+
+on: push
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/reusable-deploy.yml
+    with:
+      environment: production
+    secrets:
+      DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+```
+
+## Important Rules
+
+In caller workflow, reusable workflow is called at **job level**, not step level.
+
+Correct:
+
+```yaml
+jobs:
+  build:
+    uses: ./.github/workflows/reusable-java-build.yml
+```
+
+Wrong:
+
+```yaml
+steps:
+  - uses: ./.github/workflows/reusable-java-build.yml
+```
+
+## Real-Time Use Case
+
+A company has many Java projects.
+
+Instead of creating build workflow separately in each repository, they create one reusable workflow:
+
+```text
+shared-workflows/.github/workflows/java-ci.yml
+```
+
+Then all projects call it:
+
+```yaml
+jobs:
+  java-ci:
+    uses: company/shared-workflows/.github/workflows/java-ci.yml@v1
+    with:
+      java-version: '17'
+```
+
+## Best Practices
+
+Use version tags like `@v1`.
+Use inputs for flexible values.
+Pass secrets securely.
+Keep reusable workflows clear and focused.
+Do not hardcode environment values.
+Use documentation for team members.
+
+## Simple Definition
+
+**Reusable Workflow using `workflow_call` means creating one complete GitHub Actions workflow and calling it from another workflow or repository.**

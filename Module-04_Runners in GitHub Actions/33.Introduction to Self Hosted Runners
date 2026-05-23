@@ -1,0 +1,778 @@
+# GitHub Actions – Introduction to Self-Hosted Runners
+
+In GitHub Actions, workflows need a machine to execute jobs.
+
+GitHub provides two types of runners:
+
+| Runner Type          | Managed By        |
+| -------------------- | ----------------- |
+| GitHub Hosted Runner | GitHub            |
+| Self-Hosted Runner   | User/Organization |
+
+A Self-Hosted Runner is:
+
+> A machine that you manage yourself and connect to GitHub Actions for executing workflows.
+
+This machine can be:
+
+* Physical server
+* Virtual machine
+* Cloud VM
+* Local computer
+* Docker container
+
+---
+
+# What is a Self-Hosted Runner?
+
+A self-hosted runner is your own system that runs GitHub Actions jobs.
+
+Instead of GitHub creating temporary virtual machines, your machine executes workflow jobs.
+
+---
+
+# Simple Architecture
+
+```text id="jlwm5z"
+Developer Pushes Code
+          ↓
+GitHub Actions Triggered
+          ↓
+Self-Hosted Runner Receives Job
+          ↓
+Workflow Executes on Your Machine
+          ↓
+Results Sent Back to GitHub
+```
+
+---
+
+# Why Use Self-Hosted Runners?
+
+Organizations use self-hosted runners when they need:
+
+* More control
+* Custom environments
+* Internal network access
+* Specialized hardware
+* Faster execution
+* Reduced GitHub runner costs
+
+---
+
+# Common Use Cases
+
+| Use Case             | Example                 |
+| -------------------- | ----------------------- |
+| Internal deployments | Private servers         |
+| GPU workloads        | AI/ML builds            |
+| Large builds         | Enterprise applications |
+| Specialized software | Licensed tools          |
+| Hardware access      | IoT/Embedded systems    |
+
+---
+
+# GitHub Hosted vs Self-Hosted Runners
+
+| Feature                 | GitHub Hosted | Self-Hosted         |
+| ----------------------- | ------------- | ------------------- |
+| Managed by              | GitHub        | User                |
+| Setup                   | Automatic     | Manual              |
+| Infrastructure control  | Limited       | Full                |
+| Cost                    | Usage-based   | Your infrastructure |
+| Persistent environment  | No            | Yes                 |
+| Internal network access | Limited       | Full                |
+| Custom software         | Limited       | Unlimited           |
+
+---
+
+# Key Features of Self-Hosted Runners
+
+| Feature                | Description                |
+| ---------------------- | -------------------------- |
+| Full customization     | Install anything           |
+| Persistent storage     | Files remain               |
+| Private network access | Internal systems           |
+| Hardware flexibility   | GPU/CPU customization      |
+| Long-running jobs      | Better for heavy workloads |
+
+---
+
+# Supported Operating Systems
+
+Self-hosted runners support:
+
+| OS      | Supported |
+| ------- | --------- |
+| Linux   | ✅         |
+| Windows | ✅         |
+| macOS   | ✅         |
+
+---
+
+# Runner Labels
+
+Self-hosted runners use labels.
+
+Common labels:
+
+```text id="jlwm3r"
+self-hosted
+linux
+windows
+macOS
+```
+
+---
+
+# Basic Self-Hosted Workflow Example
+
+```yaml id="jlwm8n"
+name: Self Hosted Example
+
+on: push
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+      - name: Display Message
+        run: echo "Running on Self-Hosted Runner"
+```
+
+---
+
+# What Happens?
+
+| Step | Action                    |
+| ---- | ------------------------- |
+| 1    | GitHub sends job          |
+| 2    | Your machine receives job |
+| 3    | Workflow executes locally |
+| 4    | Logs returned to GitHub   |
+
+---
+
+# Output
+
+```text id="jlwmeu"
+Running on Self-Hosted Runner
+```
+
+---
+
+# 1. How Self-Hosted Runners Work
+
+---
+
+# Workflow Execution Flow
+
+```text id="jlwmrp"
+Workflow Triggered
+        ↓
+GitHub Queue
+        ↓
+Self-Hosted Runner Polls GitHub
+        ↓
+Runner Receives Job
+        ↓
+Job Executes
+        ↓
+Logs Sent to GitHub
+```
+
+---
+
+# Important Note
+
+Self-hosted runners:
+
+```text id="jlwm0f"
+Continuously listen for jobs
+```
+
+from GitHub Actions.
+
+---
+
+# 2. Registering a Self-Hosted Runner
+
+To use a self-hosted runner:
+
+1. Open GitHub repository
+2. Go to:
+
+   ```text
+   Settings → Actions → Runners
+   ```
+3. Click:
+
+   ```text
+   New self-hosted runner
+   ```
+4. Choose operating system
+5. Download runner package
+6. Configure runner
+7. Start runner
+
+---
+
+# Linux Runner Setup Example
+
+GitHub provides commands like:
+
+```bash id="jlwm3x"
+mkdir actions-runner
+
+cd actions-runner
+
+curl -o actions-runner-linux-x64.tar.gz -L <download-url>
+
+tar xzf ./actions-runner-linux-x64.tar.gz
+```
+
+---
+
+# Configure Runner
+
+```bash id="jlwmfu"
+./config.sh --url https://github.com/owner/repo --token TOKEN
+```
+
+---
+
+# Start Runner
+
+```bash id="jlwm0o"
+./run.sh
+```
+
+---
+
+# Runner Registration Flow
+
+```text id="jlwmgi"
+Download Runner
+       ↓
+Configure Runner
+       ↓
+Authenticate with GitHub
+       ↓
+Runner Connected
+       ↓
+Ready to Execute Jobs
+```
+
+---
+
+# 3. Using Labels in Self-Hosted Runners
+
+Labels help GitHub identify correct runner.
+
+---
+
+# Example Labels
+
+```text id="jlwmqf"
+self-hosted
+linux
+gpu
+production
+```
+
+---
+
+# Workflow Example
+
+```yaml id="jlwmk1"
+jobs:
+  build:
+    runs-on:
+      - self-hosted
+      - linux
+      - gpu
+```
+
+---
+
+# Meaning
+
+Workflow executes only on runner having:
+
+* self-hosted
+* linux
+* gpu
+
+labels.
+
+---
+
+# 4. Persistent Environment
+
+Unlike GitHub-hosted runners:
+
+Self-hosted runners are persistent.
+
+---
+
+# Example
+
+```text id="jlwm8j"
+Installed software remains available
+```
+
+after workflow completion.
+
+---
+
+# Benefits
+
+| Benefit             | Description               |
+| ------------------- | ------------------------- |
+| Faster builds       | No repeated installations |
+| Persistent cache    | Better performance        |
+| Custom environments | Specialized setups        |
+
+---
+
+# Example
+
+Install Node.js once:
+
+```bash id="jlwm4b"
+node --version
+```
+
+Available for future workflows automatically.
+
+---
+
+# 5. Access to Internal Networks
+
+Self-hosted runners can access:
+
+* Private databases
+* Internal APIs
+* Corporate servers
+* VPN resources
+
+---
+
+# Real Enterprise Use Case
+
+```text id="jlwmby"
+GitHub Workflow
+      ↓
+Self-Hosted Runner
+      ↓
+Internal Production Server
+```
+
+This is difficult with GitHub-hosted runners.
+
+---
+
+# 6. Using Custom Software
+
+Self-hosted runners support custom tools.
+
+---
+
+# Example
+
+Install:
+
+* Oracle database tools
+* SAP software
+* Embedded SDKs
+* FPGA compilers
+* GPU drivers
+
+---
+
+# Example Workflow
+
+```yaml id="jlwmpr"
+jobs:
+  custom-build:
+    runs-on: self-hosted
+
+    steps:
+      - name: Run Custom Tool
+        run: custom-compiler build
+```
+
+---
+
+# 7. Self-Hosted Runner with Docker
+
+Many organizations use Docker-based self-hosted runners.
+
+---
+
+# Example Workflow
+
+```yaml id="jlwm4q"
+jobs:
+  docker-build:
+    runs-on: self-hosted
+
+    steps:
+      - name: Build Docker Image
+        run: docker build -t app .
+```
+
+---
+
+# Why Useful?
+
+Self-hosted systems can provide:
+
+* More CPU
+* More RAM
+* GPU acceleration
+* Large storage
+
+---
+
+# 8. Parallel Execution
+
+Multiple self-hosted runners can run simultaneously.
+
+---
+
+# Example
+
+```text id="jlwms4"
+Runner 1 → Build Job
+Runner 2 → Test Job
+Runner 3 → Deploy Job
+```
+
+---
+
+# Workflow Example
+
+```yaml id="jlwmm5"
+jobs:
+  frontend:
+    runs-on: self-hosted
+
+  backend:
+    runs-on: self-hosted
+```
+
+---
+
+# 9. Self-Hosted Runner Groups
+
+Organizations can create runner groups.
+
+---
+
+# Example Groups
+
+| Group       | Purpose              |
+| ----------- | -------------------- |
+| Development | Dev workflows        |
+| Production  | Deployment workflows |
+| GPU-Runners | AI/ML jobs           |
+
+---
+
+# Enterprise Example
+
+```yaml id="jlwmbf"
+runs-on:
+  - self-hosted
+  - production
+```
+
+---
+
+# 10. Security Considerations
+
+Self-hosted runners require careful security management.
+
+---
+
+# Important Risks
+
+| Risk                  | Explanation              |
+| --------------------- | ------------------------ |
+| Malicious workflows   | Can affect machine       |
+| Secret exposure       | Local environment risk   |
+| Persistent compromise | Machine remains active   |
+| Network access        | Internal systems exposed |
+
+---
+
+# Security Best Practices
+
+| Best Practice              | Reason           |
+| -------------------------- | ---------------- |
+| Use isolated machines      | Reduce risks     |
+| Restrict repository access | Security control |
+| Avoid public repositories  | Prevent abuse    |
+| Regular updates            | Security patches |
+| Use ephemeral runners      | Better isolation |
+
+---
+
+# Important Warning
+
+Never use sensitive production servers directly as runners.
+
+---
+
+# 11. Self-Hosted Runner Services
+
+Self-hosted runners can run as background services.
+
+---
+
+# Linux Example
+
+```bash id="jlwm49"
+sudo ./svc.sh install
+
+sudo ./svc.sh start
+```
+
+---
+
+# Benefits
+
+| Benefit              | Description             |
+| -------------------- | ----------------------- |
+| Auto-start           | Starts after reboot     |
+| Background execution | No manual startup       |
+| Stable execution     | Continuous availability |
+
+---
+
+# 12. Real-World CI/CD Example
+
+---
+
+# Scenario
+
+Company deploys application to internal Kubernetes cluster.
+
+GitHub-hosted runners cannot access private network.
+
+Use self-hosted runner.
+
+---
+
+# Workflow
+
+```yaml id="jlwmoj"
+name: Internal Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on:
+      - self-hosted
+      - linux
+      - production
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Application
+        run: npm install
+
+      - name: Deploy to Kubernetes
+        run: kubectl apply -f deployment.yaml
+```
+
+---
+
+# Execution Flow
+
+```text id="jlwm2w"
+Push Code
+    ↓
+GitHub Actions Triggered
+    ↓
+Self-Hosted Runner Receives Job
+    ↓
+Build Application
+    ↓
+Deploy to Internal Kubernetes
+```
+
+---
+
+# 13. Self-Hosted Runner Directory Structure
+
+Typical structure:
+
+```text id="jlwmdb"
+actions-runner/
+ ├── config.sh
+ ├── run.sh
+ ├── _work/
+ ├── logs/
+```
+
+---
+
+# Important Directories
+
+| Directory   | Purpose        |
+| ----------- | -------------- |
+| `_work`     | Workflow files |
+| `logs`      | Runner logs    |
+| `config.sh` | Configuration  |
+| `run.sh`    | Start runner   |
+
+---
+
+# 14. Advantages of Self-Hosted Runners
+
+| Advantage               | Description                |
+| ----------------------- | -------------------------- |
+| Full control            | Customize environment      |
+| Persistent cache        | Faster builds              |
+| Internal network access | Enterprise systems         |
+| Hardware customization  | GPU/high-memory systems    |
+| Cost optimization       | Reduce GitHub runner usage |
+
+---
+
+# 15. Limitations of Self-Hosted Runners
+
+| Limitation           | Description             |
+| -------------------- | ----------------------- |
+| Maintenance required | User responsibility     |
+| Security management  | Must secure machine     |
+| Infrastructure cost  | Hardware/cloud expenses |
+| Scaling complexity   | Manual management       |
+
+---
+
+# 16. Self-Hosted vs GitHub Hosted
+
+| Feature          | Self-Hosted  | GitHub Hosted  |
+| ---------------- | ------------ | -------------- |
+| Setup complexity | Higher       | Very easy      |
+| Customization    | Unlimited    | Limited        |
+| Maintenance      | User-managed | GitHub-managed |
+| Internal network | Full access  | Limited        |
+| Persistence      | Yes          | No             |
+
+---
+
+# 17. Best Practices
+
+| Best Practice           | Reason                    |
+| ----------------------- | ------------------------- |
+| Use dedicated machines  | Better isolation          |
+| Keep runners updated    | Security                  |
+| Use labels properly     | Better workflow targeting |
+| Limit repository access | Prevent abuse             |
+| Monitor runner usage    | Stability                 |
+
+---
+
+# 18. Common Mistakes
+
+---
+
+# Mistake 1 – Using Personal Laptop
+
+Not recommended for production workflows.
+
+---
+
+# Mistake 2 – Ignoring Security
+
+Self-hosted runners can become attack targets.
+
+---
+
+# Mistake 3 – Running Too Many Jobs on One Machine
+
+Can cause performance issues.
+
+---
+
+# Mistake 4 – No Backup/Monitoring
+
+Runner failures can stop CI/CD pipelines.
+
+---
+
+# 19. Advanced Example – Multiple Labels
+
+```yaml id="jlwmns"
+jobs:
+  ai-training:
+    runs-on:
+      - self-hosted
+      - linux
+      - gpu
+      - high-memory
+
+    steps:
+      - name: Start AI Training
+        run: python train.py
+```
+
+---
+
+# Meaning
+
+Workflow requires runner with:
+
+* GPU
+* Linux
+* High memory
+
+capabilities.
+
+---
+
+# Summary
+
+| Concept                | Description                   |
+| ---------------------- | ----------------------------- |
+| Self-hosted runner     | User-managed workflow machine |
+| `self-hosted` label    | Select self-hosted runner     |
+| Persistent environment | Files/software remain         |
+| Internal access        | Private network connectivity  |
+| Custom tools           | Unlimited customization       |
+| Labels                 | Runner targeting              |
+
+---
+
+# Final Understanding
+
+Self-hosted runners in GitHub Actions provide powerful, customizable environments for executing workflows on your own infrastructure.
+
+They are ideal for:
+
+* Enterprise CI/CD
+* Internal deployments
+* GPU workloads
+* Specialized software
+* Secure private environments
+
+Using self-hosted runners, organizations gain:
+
+* Full infrastructure control
+* Better customization
+* Internal system access
+* Optimized performance
+* Flexible automation capabilities
+
+for advanced DevOps and enterprise workflow automation.

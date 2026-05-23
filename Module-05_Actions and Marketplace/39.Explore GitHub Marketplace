@@ -1,0 +1,123 @@
+## GitHub Actions: Explore GitHub Marketplace
+
+**GitHub Marketplace** is a place where we can find ready-made **GitHub Actions** to use in our workflow files.
+
+These actions help us automate tasks like:
+
+✅ Checkout code
+✅ Setup Java / Node.js / Python
+✅ Build project
+✅ Run tests
+✅ Build Docker image
+✅ Deploy application
+✅ Send notifications
+✅ Security scanning
+
+## Why GitHub Marketplace is useful
+
+Instead of writing all automation steps manually, we can use existing actions created by GitHub or trusted developers.
+
+Example:
+
+```yaml
+uses: actions/checkout@v4
+```
+
+This action downloads our repository code into the GitHub runner.
+
+## How to explore GitHub Marketplace
+
+Go to GitHub → Marketplace → Search for required action.
+
+Examples:
+
+Search:
+
+```text
+setup java
+docker build push
+deploy to azure
+slack notification
+code scanning
+```
+
+Then copy the usage code from that action page and add it into your workflow file.
+
+## Example 1: Java Maven Build Workflow
+
+Create this file:
+
+```text
+.github/workflows/java-build.yml
+```
+
+```yaml
+name: Java Maven Build
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build with Maven
+        run: mvn clean install
+```
+
+## Explanation
+
+When we push code to the `main` branch:
+
+1. GitHub Actions starts the workflow.
+2. `actions/checkout@v4` gets the project code.
+3. `actions/setup-java@v4` installs Java 17.
+4. `mvn clean install` builds the Java project.
+
+## Example 2: Docker Build Using Marketplace Action
+
+```yaml
+name: Docker Build
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: myapp:latest
+```
+
+## Important Best Practices
+
+Use trusted actions only.
+Check documentation before using.
+Use version numbers like `@v4`, `@v6`.
+Avoid unknown actions because they may access secrets.
+Read inputs and outputs clearly.
+
+## Simple Definition
+
+**GitHub Marketplace is like an app store for GitHub Actions. We can search, select, and use ready-made actions to automate CI/CD tasks easily.**

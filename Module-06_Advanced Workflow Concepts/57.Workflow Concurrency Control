@@ -1,0 +1,150 @@
+## GitHub Actions: 57. Workflow Concurrency Control
+
+**Workflow Concurrency Control** means controlling how many workflow runs can execute at the same time.
+
+It is mainly used to avoid duplicate or parallel deployments.
+
+## Why use Concurrency?
+
+Concurrency helps to:
+
+✅ Stop duplicate workflow runs
+✅ Avoid two deployments at the same time
+✅ Save GitHub Actions minutes
+✅ Cancel old running workflows
+✅ Keep latest code deployment safe
+
+## Basic Syntax
+
+```yaml
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+```
+
+## Example: Cancel Old Build and Run Latest Build
+
+```yaml
+name: Build with Concurrency
+
+on:
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: build-main
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Application
+        run: mvn clean install
+```
+
+## Explanation
+
+If one build is already running and new code is pushed again:
+
+```text
+Old workflow run is cancelled
+New workflow run starts
+```
+
+This ensures only the latest build runs.
+
+## Real-Time Deployment Example
+
+```yaml
+name: Production Deployment
+
+on:
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy Application
+        run: echo "Deploying to production..."
+```
+
+## Explanation
+
+Here:
+
+```yaml
+cancel-in-progress: false
+```
+
+Means if one production deployment is running, the next deployment will wait.
+
+This prevents two deployments from happening at the same time.
+
+## Dynamic Concurrency Group Example
+
+```yaml
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+```
+
+This creates different concurrency groups for different branches.
+
+Example:
+
+```text
+deploy-main
+deploy-dev
+deploy-feature
+```
+
+## Job-Level Concurrency Example
+
+```yaml
+name: Job Level Concurrency
+
+on: push
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: staging-deploy
+      cancel-in-progress: false
+
+    steps:
+      - name: Deploy to Staging
+        run: echo "Deploying to staging..."
+```
+
+## Workflow-Level vs Job-Level Concurrency
+
+| Type                       | Meaning                    |
+| -------------------------- | -------------------------- |
+| Workflow-level concurrency | Controls full workflow run |
+| Job-level concurrency      | Controls only specific job |
+
+## Best Practices
+
+Use concurrency for deployments.
+Use `cancel-in-progress: true` for build/test workflows.
+Use `cancel-in-progress: false` for production deployment.
+Use dynamic groups for branches.
+Keep group names clear and meaningful.
+
+## Simple Definition
+
+**Workflow Concurrency Control in GitHub Actions means allowing only one workflow or job from the same group to run at a time.**

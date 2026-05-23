@@ -1,0 +1,777 @@
+# GitHub Actions – Working with Windows Runners
+
+Windows runners in GitHub Actions are virtual machines running Microsoft Windows.
+
+They are mainly used for:
+
+* .NET applications
+* Windows software builds
+* PowerShell scripts
+* Desktop applications
+* Windows-specific testing
+
+GitHub provides fully managed Windows virtual machines for workflow execution.
+
+---
+
+# What is a Windows Runner?
+
+A Windows runner is:
+
+> A Windows-based virtual machine used to execute GitHub Actions workflows.
+
+GitHub automatically:
+
+* Creates Windows VM
+* Runs workflow jobs
+* Removes VM after completion
+
+---
+
+# Common Windows Runner Labels
+
+| Label          | Description                  |
+| -------------- | ---------------------------- |
+| windows-latest | Latest stable Windows runner |
+| windows-2022   | Windows Server 2022          |
+| windows-2019   | Windows Server 2019          |
+
+---
+
+# Example
+
+```yaml id="1bupj7"
+runs-on: windows-latest
+```
+
+---
+
+# Why Use Windows Runners?
+
+Windows runners are useful for:
+
+| Use Case              | Example                |
+| --------------------- | ---------------------- |
+| .NET applications     | ASP.NET Core           |
+| PowerShell automation | Windows scripts        |
+| Desktop software      | WinForms/WPF           |
+| Windows testing       | Windows-specific apps  |
+| Microsoft tools       | MSBuild, Visual Studio |
+
+---
+
+# Workflow Lifecycle
+
+```text id="jlwmtw"
+Workflow Triggered
+        ↓
+Windows VM Created
+        ↓
+Repository Downloaded
+        ↓
+Workflow Steps Execute
+        ↓
+Logs Generated
+        ↓
+VM Destroyed
+```
+
+---
+
+# Important Features
+
+| Feature             | Description         |
+| ------------------- | ------------------- |
+| Temporary VM        | Fresh environment   |
+| PowerShell support  | Default shell       |
+| Pre-installed tools | Visual Studio, .NET |
+| Isolated execution  | Secure workflows    |
+
+---
+
+# 1. Basic Windows Runner Example
+
+---
+
+# Workflow
+
+```yaml id="jlwm9w"
+name: Windows Runner Demo
+
+on: push
+
+jobs:
+  demo:
+    runs-on: windows-latest
+
+    steps:
+      - name: Display Message
+        run: echo "Hello from Windows Runner"
+```
+
+---
+
+# What Happens?
+
+| Step | Action                    |
+| ---- | ------------------------- |
+| 1    | GitHub creates Windows VM |
+| 2    | Workflow executes         |
+| 3    | Output generated          |
+| 4    | VM destroyed              |
+
+---
+
+# Output
+
+```text id="jlwmx7"
+Hello from Windows Runner
+```
+
+---
+
+# 2. Windows Shells in GitHub Actions
+
+Windows runners support multiple shells.
+
+---
+
+# Common Shells
+
+| Shell      | Description               |
+| ---------- | ------------------------- |
+| PowerShell | Default shell             |
+| cmd        | Command Prompt            |
+| bash       | Git Bash/Linux-like shell |
+
+---
+
+# Example – PowerShell
+
+```yaml id="jlwmn9"
+steps:
+  - name: PowerShell Example
+    run: |
+      Write-Host "Running PowerShell"
+      Get-Date
+```
+
+---
+
+# Example Output
+
+```text id="jlwm0n"
+Running PowerShell
+Thursday, May 22
+```
+
+---
+
+# 3. Using CMD Shell
+
+---
+
+# Example
+
+```yaml id="jlwm5s"
+steps:
+  - name: CMD Example
+    shell: cmd
+
+    run: |
+      echo Running CMD
+      dir
+```
+
+---
+
+# Explanation
+
+| Command | Purpose      |
+| ------- | ------------ |
+| echo    | Display text |
+| dir     | List files   |
+
+---
+
+# 4. Using Bash on Windows
+
+GitHub Windows runners also support Bash.
+
+---
+
+# Example
+
+```yaml id="jlwmzg"
+steps:
+  - name: Bash Example
+    shell: bash
+
+    run: |
+      echo "Running Bash on Windows"
+      pwd
+```
+
+---
+
+# Why Useful?
+
+Helpful for:
+
+* Cross-platform scripts
+* Linux-style commands
+* Shared CI/CD scripts
+
+---
+
+# 5. Checkout Repository on Windows Runner
+
+---
+
+# Example
+
+```yaml id="jlwm2h"
+name: Checkout Example
+
+on: push
+
+jobs:
+  checkout-demo:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: List Files
+        run: dir
+```
+
+---
+
+# What Happens?
+
+| Step     | Action                    |
+| -------- | ------------------------- |
+| checkout | Downloads repository      |
+| dir      | Displays repository files |
+
+---
+
+# Sample Output
+
+```text id="jlwm0q"
+README.md
+src
+package.json
+```
+
+---
+
+# 6. Pre-Installed Software in Windows Runners
+
+Windows runners include many Microsoft development tools.
+
+---
+
+# Common Preinstalled Software
+
+| Tool          | Available |
+| ------------- | --------- |
+| Visual Studio | ✅         |
+| .NET SDK      | ✅         |
+| PowerShell    | ✅         |
+| Git           | ✅         |
+| Node.js       | ✅         |
+| Python        | ✅         |
+| Java          | ✅         |
+
+---
+
+# Example – Check Installed Tools
+
+```yaml id="9gljlwm"
+steps:
+  - name: Check Versions
+    run: |
+      dotnet --version
+      node --version
+      git --version
+```
+
+---
+
+# Sample Output
+
+```text id="jlwm7w"
+8.x.x
+20.x.x
+git version 2.x
+```
+
+---
+
+# 7. Working with PowerShell Scripts
+
+Windows runners are excellent for PowerShell automation.
+
+---
+
+# Example
+
+```yaml id="rjlwm6"
+steps:
+  - name: PowerShell Variables
+    run: |
+      $name = "GitHub Actions"
+
+      Write-Host "Welcome to $name"
+```
+
+---
+
+# Output
+
+```text id="jlwmn7"
+Welcome to GitHub Actions
+```
+
+---
+
+# 8. Running .NET Applications
+
+Windows runners are widely used for .NET projects.
+
+---
+
+# Example
+
+```yaml id="jlwm7o"
+name: .NET Build
+
+on: push
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore Dependencies
+        run: dotnet restore
+
+      - name: Build Application
+        run: dotnet build
+
+      - name: Run Tests
+        run: dotnet test
+```
+
+---
+
+# Workflow Flow
+
+```text id="jlwm1l"
+Checkout Code
+      ↓
+Restore Packages
+      ↓
+Build Application
+      ↓
+Run Tests
+```
+
+---
+
+# 9. Environment Variables in Windows Runners
+
+---
+
+# Example
+
+```yaml id="7pjlwm"
+env:
+  APP_NAME: MyApplication
+```
+
+---
+
+# Workflow
+
+```yaml id="jlwmxv"
+jobs:
+  demo:
+    runs-on: windows-latest
+
+    env:
+      APP_NAME: MyApplication
+
+    steps:
+      - name: Display Variable
+        run: echo $env:APP_NAME
+```
+
+---
+
+# Output
+
+```text id="jlwmsu"
+MyApplication
+```
+
+---
+
+# Important Difference
+
+| OS                 | Variable Syntax |
+| ------------------ | --------------- |
+| Linux              | `$APP_NAME`     |
+| Windows PowerShell | `$env:APP_NAME` |
+
+---
+
+# 10. File Operations in Windows Runner
+
+---
+
+# Example
+
+```yaml id="jlwm3w"
+steps:
+  - name: Create File
+    run: |
+      echo GitHub Actions > app.txt
+
+  - name: Read File
+    run: |
+      type app.txt
+```
+
+---
+
+# Output
+
+```text id="jlwmw5"
+GitHub Actions
+```
+
+---
+
+# 11. Parallel Jobs with Windows Runners
+
+Each job gets separate Windows VM.
+
+---
+
+# Example
+
+```yaml id="jlwm0a"
+jobs:
+  frontend:
+    runs-on: windows-latest
+
+  backend:
+    runs-on: windows-latest
+```
+
+---
+
+# Execution
+
+```text id="jlwm5c"
+frontend → Windows Runner 1
+backend  → Windows Runner 2
+```
+
+Both execute simultaneously.
+
+---
+
+# 12. Matrix Builds with Windows Runners
+
+---
+
+# Example
+
+```yaml id="jlwm8f"
+jobs:
+  test:
+    strategy:
+      matrix:
+        dotnet-version:
+          - 6.0
+          - 7.0
+          - 8.0
+
+    runs-on: windows-latest
+
+    steps:
+      - run: echo "Testing .NET ${{ matrix.dotnet-version }}"
+```
+
+---
+
+# Result
+
+GitHub creates:
+
+| Runner   | .NET Version |
+| -------- | ------------ |
+| Runner 1 | 6.0          |
+| Runner 2 | 7.0          |
+| Runner 3 | 8.0          |
+
+---
+
+# 13. Accessing Runner Information
+
+---
+
+# Example
+
+```yaml id="jlwmw7"
+steps:
+  - name: Runner Information
+    run: |
+      echo "OS: $env:RUNNER_OS"
+      echo "Workspace: $env:GITHUB_WORKSPACE"
+```
+
+---
+
+# Sample Output
+
+```text id="jlwmry"
+OS: Windows
+Workspace: D:\a\repo\repo
+```
+
+---
+
+# 14. Real-World Windows CI/CD Example
+
+---
+
+# Scenario
+
+Build and test ASP.NET application.
+
+---
+
+# Workflow
+
+```yaml id="jlwmif"
+name: ASP.NET CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+
+        with:
+          dotnet-version: 8.0
+
+      - name: Restore Packages
+        run: dotnet restore
+
+      - name: Build Project
+        run: dotnet build --configuration Release
+
+      - name: Run Tests
+        run: dotnet test
+```
+
+---
+
+# Execution Flow
+
+```text id="jlwmj7"
+Push Code
+    ↓
+Windows Runner Created
+    ↓
+Restore Dependencies
+    ↓
+Build Application
+    ↓
+Run Tests
+    ↓
+Runner Destroyed
+```
+
+---
+
+# 15. Advantages of Windows Runners
+
+| Advantage              | Description         |
+| ---------------------- | ------------------- |
+| Excellent .NET support | Microsoft ecosystem |
+| PowerShell automation  | Windows scripting   |
+| Visual Studio tools    | Preinstalled        |
+| Windows compatibility  | Native testing      |
+| Enterprise integration | Microsoft platforms |
+
+---
+
+# 16. Limitations of Windows Runners
+
+| Limitation                  | Description           |
+| --------------------------- | --------------------- |
+| Slower startup              | Compared to Ubuntu    |
+| Higher resource usage       | Larger VM size        |
+| Longer build times          | Windows overhead      |
+| Limited Linux compatibility | Some Linux tools fail |
+
+---
+
+# 17. Windows Runner vs Ubuntu Runner
+
+| Feature        | Windows            | Ubuntu         |
+| -------------- | ------------------ | -------------- |
+| Speed          | Slower             | Faster         |
+| Default Shell  | PowerShell         | Bash           |
+| Best For       | .NET, Windows apps | DevOps, Docker |
+| Resource Usage | Higher             | Lower          |
+| Popularity     | Medium             | Very High      |
+
+---
+
+# 18. Best Practices
+
+| Best Practice                 | Reason                  |
+| ----------------------------- | ----------------------- |
+| Use Windows only when needed  | Ubuntu is faster        |
+| Use PowerShell properly       | Native Windows support  |
+| Cache dependencies            | Improve performance     |
+| Test cross-platform carefully | OS differences matter   |
+| Use matrix builds wisely      | Avoid excessive runners |
+
+---
+
+# 19. Common Mistakes
+
+---
+
+# Mistake 1 – Using Linux Commands
+
+Wrong on Windows:
+
+```yaml id="jlwmx1"
+run: ls
+```
+
+Use:
+
+```yaml id="jlwmu3"
+run: dir
+```
+
+---
+
+# Mistake 2 – Wrong Environment Variable Syntax
+
+Wrong:
+
+```yaml id="jlwm0g"
+echo $APP_NAME
+```
+
+Correct:
+
+```yaml id="jlwmy1"
+echo $env:APP_NAME
+```
+
+---
+
+# Mistake 3 – Assuming Bash Default
+
+Windows runners default to PowerShell.
+
+---
+
+# Mistake 4 – Ignoring Path Differences
+
+Windows paths use:
+
+```text id="jlwm1f"
+\
+```
+
+instead of:
+
+```text id="jlwmxk"
+/
+```
+
+---
+
+# 20. Advanced Example – Multi Platform Testing
+
+```yaml id="jlwm2l"
+name: Cross Platform Testing
+
+on: push
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Display OS
+        run: echo "Running on $RUNNER_OS"
+```
+
+---
+
+# Summary
+
+| Concept        | Description                   |
+| -------------- | ----------------------------- |
+| Windows Runner | Windows VM for workflows      |
+| `runs-on`      | Select Windows runner         |
+| PowerShell     | Default shell                 |
+| .NET support   | Excellent Windows integration |
+| Temporary VM   | Fresh environment each run    |
+| Matrix builds  | Parallel testing              |
+
+---
+
+# Final Understanding
+
+Windows runners in GitHub Actions provide powerful Windows-based environments for:
+
+* .NET applications
+* PowerShell automation
+* Microsoft ecosystem tools
+* Windows software testing
+* Enterprise CI/CD pipelines
+
+They enable developers to automate:
+
+* Builds
+* Testing
+* Deployment
+* Cross-platform validation
+
+using fully managed Windows virtual machines in GitHub Actions.

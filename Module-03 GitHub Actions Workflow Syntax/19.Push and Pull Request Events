@@ -1,0 +1,514 @@
+# GitHub Actions – Push and Pull Request Events
+
+In GitHub Actions, an **event** is something that triggers a workflow automatically.
+
+Two of the most commonly used events are:
+
+1. `push`
+2. `pull_request`
+
+These events help automate:
+
+* Testing
+* Building
+* Deployment
+* Code validation
+* CI/CD pipelines
+
+---
+
+# 1. Push Event
+
+A `push` event triggers a workflow whenever code is pushed to a repository.
+
+## Syntax
+
+```yaml
+on:
+  push:
+```
+
+---
+
+# How Push Event Works
+
+When developer pushes code:
+
+```bash
+git push origin main
+```
+
+GitHub detects the push and automatically starts the workflow.
+
+---
+
+# Basic Push Event Example
+
+```yaml
+name: Push Workflow
+
+on:
+  push:
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print Message
+        run: echo "Code pushed successfully!"
+```
+
+---
+
+# Explanation
+
+| Section    | Description              |
+| ---------- | ------------------------ |
+| `on: push` | Trigger workflow on push |
+| `jobs`     | Group of tasks           |
+| `runs-on`  | Operating system         |
+| `steps`    | Commands/actions         |
+
+---
+
+# Real-Time Scenario
+
+Developer pushes new code:
+
+```bash
+git add .
+git commit -m "Added login feature"
+git push origin main
+```
+
+GitHub Actions automatically:
+
+1. Starts workflow
+2. Executes jobs
+3. Shows result in Actions tab
+
+---
+
+# Push Event on Specific Branch
+
+Sometimes workflows should run only on certain branches.
+
+Example:
+
+```yaml
+on:
+  push:
+    branches:
+      - main
+```
+
+Workflow runs only when code is pushed to:
+
+```text
+main
+```
+
+---
+
+# Multiple Branch Example
+
+```yaml
+on:
+  push:
+    branches:
+      - main
+      - develop
+```
+
+Now workflow triggers for both:
+
+* `main`
+* `develop`
+
+---
+
+# Ignore Branch Example
+
+```yaml
+on:
+  push:
+    branches-ignore:
+      - experimental
+```
+
+Workflow will not run for:
+
+```text
+experimental
+```
+
+---
+
+# Push Event With Tags
+
+```yaml
+on:
+  push:
+    tags:
+      - 'v*'
+```
+
+Triggers when tags like below are pushed:
+
+```text
+v1.0
+v2.0
+```
+
+---
+
+# Real Project Example – Automated Testing
+
+```yaml
+name: Test Application
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Tests
+        run: echo "Running unit tests..."
+```
+
+---
+
+# Common Push Event Use Cases
+
+| Use Case       | Purpose             |
+| -------------- | ------------------- |
+| Unit Testing   | Validate code       |
+| Build Projects | Compile application |
+| Lint Checks    | Code quality        |
+| Docker Builds  | Create images       |
+| Deployment     | Auto deploy apps    |
+
+---
+
+# 2. Pull Request Event
+
+A `pull_request` event triggers workflows whenever pull request activity happens.
+
+Examples:
+
+* PR opened
+* PR updated
+* PR reopened
+* PR synchronized
+
+---
+
+# Syntax
+
+```yaml
+on:
+  pull_request:
+```
+
+---
+
+# How Pull Request Event Works
+
+Developer creates PR:
+
+```text
+feature-login ---> main
+```
+
+GitHub automatically:
+
+1. Detects PR
+2. Runs workflow
+3. Validates code
+4. Reports status
+
+---
+
+# Basic Pull Request Example
+
+```yaml
+name: Pull Request Workflow
+
+on:
+  pull_request:
+
+jobs:
+  validation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate PR
+        run: echo "Pull request validation started..."
+```
+
+---
+
+# Real-Time Example
+
+Developer workflow:
+
+```text
+1. Create feature branch
+2. Add code
+3. Push feature branch
+4. Create Pull Request
+5. GitHub Actions validates PR
+```
+
+---
+
+# Pull Request on Specific Branch
+
+```yaml
+on:
+  pull_request:
+    branches:
+      - main
+```
+
+Workflow triggers only when PR target branch is:
+
+```text
+main
+```
+
+Example:
+
+```text
+feature-payment ---> main
+```
+
+Workflow runs.
+
+But:
+
+```text
+feature-payment ---> develop
+```
+
+Workflow does not run.
+
+---
+
+# Pull Request Activity Types
+
+GitHub supports different PR activities.
+
+```yaml
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+```
+
+---
+
+# Activity Types Explanation
+
+| Type          | Meaning               |
+| ------------- | --------------------- |
+| `opened`      | PR created            |
+| `synchronize` | New commits added     |
+| `reopened`    | Reopened PR           |
+| `closed`      | PR closed             |
+| `edited`      | PR description edited |
+
+---
+
+# Real Project Example – PR Validation
+
+```yaml
+name: PR Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Code Quality Checks
+        run: echo "Checking code quality..."
+
+      - name: Run Tests
+        run: echo "Executing tests..."
+```
+
+---
+
+# Difference Between Push and Pull Request
+
+| Feature      | push          | pull_request           |
+| ------------ | ------------- | ---------------------- |
+| Trigger Time | After push    | During PR              |
+| Main Purpose | CI automation | Code review validation |
+| Before Merge | No            | Yes                    |
+| Common Usage | Build/Test    | Validation             |
+
+---
+
+# Combined Workflow Example
+
+Most real projects use both events together.
+
+```yaml
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Application
+        run: echo "Building project..."
+
+      - name: Run Tests
+        run: echo "Running tests..."
+```
+
+---
+
+# Workflow Execution Scenarios
+
+## Scenario 1 – Push Event
+
+Developer runs:
+
+```bash
+git push origin main
+```
+
+Workflow starts automatically.
+
+---
+
+## Scenario 2 – Pull Request Event
+
+Developer creates:
+
+```text
+feature-branch ---> main
+```
+
+Workflow starts automatically.
+
+---
+
+# Enterprise CI/CD Example
+
+```yaml
+name: Enterprise CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: echo "Installing dependencies..."
+
+      - name: Run Unit Tests
+        run: echo "Running tests..."
+
+      - name: Security Scan
+        run: echo "Scanning vulnerabilities..."
+
+      - name: Build Application
+        run: echo "Building project..."
+```
+
+---
+
+# Best Practices
+
+## Push Event
+
+✅ Keep workflows fast
+✅ Run automated tests
+✅ Build applications
+✅ Run lint checks
+
+---
+
+## Pull Request Event
+
+✅ Validate code quality
+✅ Run security scans
+✅ Review before merge
+✅ Prevent broken code
+
+---
+
+# Important Notes
+
+## Push Event
+
+* Triggered after code push
+* Useful for CI pipelines
+* Can trigger deployments
+
+---
+
+## Pull Request Event
+
+* Triggered before merge
+* Helps maintain code quality
+* Used for review validation
+
+---
+
+# Summary
+
+| Event          | Best Used For            |
+| -------------- | ------------------------ |
+| `push`         | Continuous Integration   |
+| `pull_request` | Code Review & Validation |
+
+Both are core events in modern DevOps pipelines using GitHub Actions.

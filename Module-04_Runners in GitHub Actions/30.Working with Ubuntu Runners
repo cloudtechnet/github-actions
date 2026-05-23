@@ -1,0 +1,762 @@
+# GitHub Actions – Working with Ubuntu Runners
+
+Ubuntu runners are the most commonly used runners in GitHub Actions.
+
+They are:
+
+* Fast
+* Stable
+* Pre-configured
+* Developer-friendly
+* Best for CI/CD pipelines
+
+Most GitHub Actions workflows use:
+
+```yaml id="25e7hz"
+runs-on: ubuntu-latest
+```
+
+---
+
+# What is an Ubuntu Runner?
+
+An Ubuntu runner is:
+
+> A Linux-based virtual machine provided by GitHub to execute workflow jobs.
+
+GitHub creates a temporary Ubuntu VM whenever a workflow starts.
+
+---
+
+# Common Ubuntu Runner Labels
+
+| Label         | Description          |
+| ------------- | -------------------- |
+| ubuntu-latest | Latest stable Ubuntu |
+| ubuntu-24.04  | Ubuntu 24.04         |
+| ubuntu-22.04  | Ubuntu 22.04         |
+| ubuntu-20.04  | Ubuntu 20.04         |
+
+---
+
+# Example
+
+```yaml id="jlwmv6"
+runs-on: ubuntu-latest
+```
+
+---
+
+# Why Ubuntu Runners are Popular
+
+Ubuntu runners provide:
+
+| Advantage              | Description              |
+| ---------------------- | ------------------------ |
+| Fast startup           | Quick workflow execution |
+| Linux ecosystem        | Best for DevOps tools    |
+| Docker support         | Container workflows      |
+| Pre-installed software | Saves setup time         |
+| Good compatibility     | Works with most tools    |
+
+---
+
+# Ubuntu Runner Workflow Lifecycle
+
+```text id="4m0d0q"
+Workflow Triggered
+        ↓
+Ubuntu VM Created
+        ↓
+Repository Downloaded
+        ↓
+Workflow Steps Executed
+        ↓
+Logs Generated
+        ↓
+VM Destroyed
+```
+
+---
+
+# Important Characteristics
+
+| Feature             | Description                 |
+| ------------------- | --------------------------- |
+| Temporary VM        | Fresh environment every run |
+| Isolated execution  | Secure workflow execution   |
+| Cloud-hosted        | Managed by GitHub           |
+| Linux shell support | Bash commands available     |
+
+---
+
+# 1. Basic Ubuntu Runner Example
+
+---
+
+# Workflow
+
+```yaml id="7fey5t"
+name: Ubuntu Runner Demo
+
+on: push
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Display Message
+        run: echo "Hello from Ubuntu Runner"
+```
+
+---
+
+# What Happens?
+
+| Step | Action                   |
+| ---- | ------------------------ |
+| 1    | GitHub creates Ubuntu VM |
+| 2    | Workflow executes        |
+| 3    | Message displayed        |
+| 4    | VM removed               |
+
+---
+
+# Output
+
+```text id="jlwm1p"
+Hello from Ubuntu Runner
+```
+
+---
+
+# 2. Checkout Repository on Ubuntu Runner
+
+Most workflows first download repository code.
+
+Use:
+
+```yaml id="jlwm4h"
+actions/checkout
+```
+
+---
+
+# Example
+
+```yaml id="t2m44m"
+name: Checkout Example
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: List Files
+        run: ls -la
+```
+
+---
+
+# Explanation
+
+| Step     | Purpose              |
+| -------- | -------------------- |
+| checkout | Downloads repository |
+| ls -la   | Displays files       |
+
+---
+
+# Sample Output
+
+```text id="x6g9hy"
+README.md
+src/
+package.json
+```
+
+---
+
+# 3. Running Linux Commands
+
+Ubuntu runners support Linux shell commands.
+
+---
+
+# Example Commands
+
+| Command | Purpose           |
+| ------- | ----------------- |
+| `pwd`   | Current directory |
+| `ls`    | List files        |
+| `mkdir` | Create directory  |
+| `cat`   | Read file         |
+| `echo`  | Print text        |
+
+---
+
+# Example Workflow
+
+```yaml id="1kztz7"
+jobs:
+  linux-demo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: pwd
+
+      - run: ls
+
+      - run: mkdir test-folder
+
+      - run: echo "Ubuntu Runner" > file.txt
+
+      - run: cat file.txt
+```
+
+---
+
+# Output
+
+```text id="3krw0t"
+/home/runner/work/project
+Ubuntu Runner
+```
+
+---
+
+# 4. Using Bash Scripts
+
+Ubuntu runners use Bash shell by default.
+
+---
+
+# Example
+
+```yaml id="jlwm0v"
+steps:
+  - name: Bash Script
+    run: |
+      echo "Starting Build"
+
+      for i in 1 2 3
+      do
+        echo "Step $i"
+      done
+```
+
+---
+
+# Output
+
+```text id="jlwm5x"
+Starting Build
+Step 1
+Step 2
+Step 3
+```
+
+---
+
+# 5. Installing Packages in Ubuntu Runner
+
+Ubuntu runners allow package installation using:
+
+```bash
+apt-get
+```
+
+---
+
+# Example
+
+```yaml id="jlwm9k"
+steps:
+  - name: Install Tree Package
+    run: |
+      sudo apt-get update
+      sudo apt-get install tree -y
+
+  - name: Verify Installation
+    run: tree
+```
+
+---
+
+# Important Note
+
+Ubuntu runners allow:
+
+```text id="jlwm8u"
+sudo access
+```
+
+which means administrative privileges are available.
+
+---
+
+# 6. Pre-Installed Software in Ubuntu Runners
+
+GitHub Ubuntu runners already include many tools.
+
+---
+
+# Common Preinstalled Tools
+
+| Tool    | Available |
+| ------- | --------- |
+| Git     | ✅         |
+| Docker  | ✅         |
+| Node.js | ✅         |
+| Python  | ✅         |
+| Java    | ✅         |
+| Maven   | ✅         |
+| npm     | ✅         |
+| kubectl | ✅         |
+
+---
+
+# Example – Check Versions
+
+```yaml id="5llzpb"
+steps:
+  - name: Check Installed Tools
+    run: |
+      git --version
+      node --version
+      python --version
+      docker --version
+```
+
+---
+
+# Sample Output
+
+```text id="jlwmi1"
+git version 2.x
+node v20.x
+Python 3.x
+Docker version 24.x
+```
+
+---
+
+# 7. Running Node.js Applications
+
+Ubuntu runners are widely used for Node.js projects.
+
+---
+
+# Example
+
+```yaml id="ymxuqv"
+name: Node App
+
+on: push
+
+jobs:
+  node-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Tests
+        run: npm test
+
+      - name: Build App
+        run: npm run build
+```
+
+---
+
+# Workflow Flow
+
+```text id="jlwmkg"
+Checkout Code
+      ↓
+Install npm Packages
+      ↓
+Run Tests
+      ↓
+Build Application
+```
+
+---
+
+# 8. Using Docker in Ubuntu Runners
+
+Ubuntu runners support Docker.
+
+---
+
+# Example
+
+```yaml id="9zh5vv"
+steps:
+  - name: Check Docker
+    run: docker --version
+```
+
+---
+
+# Build Docker Image Example
+
+```yaml id="3ekjlwm"
+steps:
+  - name: Build Docker Image
+    run: docker build -t myapp .
+```
+
+---
+
+# Real Use Cases
+
+| Use Case              | Example             |
+| --------------------- | ------------------- |
+| Container builds      | Docker images       |
+| Kubernetes deployment | kubectl             |
+| CI/CD                 | Automated builds    |
+| Microservices         | Container workflows |
+
+---
+
+# 9. Environment Variables in Ubuntu Runner
+
+---
+
+# Example
+
+```yaml id="jlwmh8"
+env:
+  APP_NAME: MyApp
+```
+
+---
+
+# Workflow
+
+```yaml id="jlwm8s"
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+
+    env:
+      APP_NAME: MyApp
+
+    steps:
+      - name: Display Variable
+        run: echo $APP_NAME
+```
+
+---
+
+# Output
+
+```text id="jlwmou"
+MyApp
+```
+
+---
+
+# 10. File Handling in Ubuntu Runners
+
+---
+
+# Example
+
+```yaml id="jlwmif"
+steps:
+  - name: Create File
+    run: echo "GitHub Actions" > app.txt
+
+  - name: Read File
+    run: cat app.txt
+```
+
+---
+
+# Output
+
+```text id="jlwmwy"
+GitHub Actions
+```
+
+---
+
+# 11. Parallel Jobs with Ubuntu Runners
+
+Each job gets separate Ubuntu VM.
+
+---
+
+# Example
+
+```yaml id="cshyey"
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+
+  backend:
+    runs-on: ubuntu-latest
+```
+
+---
+
+# Execution
+
+```text id="k8i8y4"
+frontend → Ubuntu Runner 1
+backend  → Ubuntu Runner 2
+```
+
+Both run simultaneously.
+
+---
+
+# 12. Matrix Builds with Ubuntu Runners
+
+---
+
+# Example
+
+```yaml id="y8jlwm"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node: [16, 18, 20]
+
+    steps:
+      - run: echo "Testing Node ${{ matrix.node }}"
+```
+
+---
+
+# Result
+
+GitHub creates:
+
+| Runner   | Node Version |
+| -------- | ------------ |
+| Runner 1 | 16           |
+| Runner 2 | 18           |
+| Runner 3 | 20           |
+
+---
+
+# 13. Accessing Runner Information
+
+Ubuntu runners provide system variables.
+
+---
+
+# Example
+
+```yaml id="jlwmr7"
+steps:
+  - name: Runner Information
+    run: |
+      echo "OS: $RUNNER_OS"
+      echo "Temp: $RUNNER_TEMP"
+      echo "Workspace: $GITHUB_WORKSPACE"
+```
+
+---
+
+# Sample Output
+
+```text id="2b5gqs"
+OS: Linux
+Workspace: /home/runner/work/repo
+```
+
+---
+
+# 14. Real-World CI/CD Example
+
+---
+
+# Scenario
+
+Build and deploy Node.js application.
+
+---
+
+# Workflow
+
+```yaml id="jlwm77"
+name: Ubuntu CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Tests
+        run: npm test
+
+      - name: Build Project
+        run: npm run build
+
+  deploy:
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy Application
+        run: echo "Deploying application"
+```
+
+---
+
+# Execution Flow
+
+```text id="jlwm7s"
+Push Code
+    ↓
+Ubuntu Runner Created
+    ↓
+Build + Test
+    ↓
+Deploy Job
+    ↓
+Runner Destroyed
+```
+
+---
+
+# 15. Advantages of Ubuntu Runners
+
+| Advantage       | Description             |
+| --------------- | ----------------------- |
+| Fast startup    | Quick execution         |
+| Linux support   | Best DevOps environment |
+| Docker-ready    | Container support       |
+| Cost-effective  | Efficient CI/CD         |
+| Large ecosystem | Supports many tools     |
+
+---
+
+# 16. Limitations of Ubuntu Runners
+
+| Limitation            | Description               |
+| --------------------- | ------------------------- |
+| Temporary environment | Data removed after run    |
+| Runtime limits        | Max execution time        |
+| Limited customization | Cannot permanently modify |
+| Shared infrastructure | Limited resources         |
+
+---
+
+# 17. Best Practices
+
+| Best Practice               | Reason                    |
+| --------------------------- | ------------------------- |
+| Use ubuntu-latest           | Best compatibility        |
+| Cache dependencies          | Faster workflows          |
+| Keep jobs optimized         | Reduce execution time     |
+| Use matrix builds carefully | Avoid unnecessary runners |
+| Store artifacts             | Preserve files            |
+
+---
+
+# 18. Common Mistakes
+
+---
+
+# Mistake 1 – Assuming Persistent Storage
+
+Files disappear after workflow ends.
+
+---
+
+# Mistake 2 – Hardcoding Paths
+
+Avoid fixed Linux paths when possible.
+
+---
+
+# Mistake 3 – Installing Everything Repeatedly
+
+Can slow pipelines.
+
+Use caching.
+
+---
+
+# Mistake 4 – Ignoring Runner Limits
+
+Large builds may hit timeout/resource limits.
+
+---
+
+# 19. Ubuntu Runner vs Windows Runner
+
+| Feature         | Ubuntu    | Windows    |
+| --------------- | --------- | ---------- |
+| Speed           | Faster    | Slower     |
+| Shell           | Bash      | PowerShell |
+| Docker Support  | Excellent | Moderate   |
+| Popularity      | Very High | Medium     |
+| Cost Efficiency | Better    | Lower      |
+
+---
+
+# Summary
+
+| Concept            | Description              |
+| ------------------ | ------------------------ |
+| Ubuntu Runner      | Linux VM for workflows   |
+| `runs-on`          | Select runner            |
+| Bash support       | Linux scripting          |
+| Preinstalled tools | Ready-to-use environment |
+| Docker support     | Container workflows      |
+| Matrix builds      | Parallel testing         |
+
+---
+
+# Final Understanding
+
+Ubuntu runners are the backbone of most GitHub Actions CI/CD pipelines.
+
+They provide:
+
+* Fast Linux environments
+* DevOps tool support
+* Docker compatibility
+* Reliable automation
+* Scalable CI/CD execution
+
+Using Ubuntu runners, developers can build:
+
+* Automated testing systems
+* CI/CD pipelines
+* Container workflows
+* Cloud deployments
+* Enterprise DevOps automation
+
+efficiently and securely.

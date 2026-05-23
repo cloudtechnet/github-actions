@@ -1,0 +1,257 @@
+## GitHub Actions: 55. Workflow Chaining
+
+**Workflow Chaining** means triggering one workflow after another workflow completes.
+
+In simple words:
+
+```text
+Workflow 1 finishes → Workflow 2 starts
+```
+
+This helps create complete CI/CD pipelines step by step.
+
+## Why use Workflow Chaining?
+
+Workflow chaining is useful for:
+
+✅ Separating CI and CD pipelines
+✅ Running deployment only after build success
+✅ Better workflow management
+✅ Reusing workflows independently
+✅ Creating enterprise-level automation pipelines
+
+## Common Workflow Chaining Methods
+
+1. `workflow_run`
+2. `repository_dispatch`
+3. `workflow_call`
+4. API Triggering
+
+Most commonly used:
+
+```yaml
+workflow_run
+```
+
+# Method 1: Using `workflow_run`
+
+## Step 1: Create Build Workflow
+
+File:
+
+```text
+.github/workflows/build.yml
+```
+
+```yaml
+name: Build Workflow
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Application
+        run: |
+          echo "Building application..."
+          mvn clean package
+```
+
+## Step 2: Create Deploy Workflow
+
+File:
+
+```text
+.github/workflows/deploy.yml
+```
+
+```yaml
+name: Deploy Workflow
+
+on:
+  workflow_run:
+    workflows: ["Build Workflow"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy Application
+        run: echo "Deploying application..."
+```
+
+# Explanation
+
+## First Workflow
+
+```yaml
+Build Workflow
+```
+
+runs when code is pushed.
+
+## Second Workflow
+
+```yaml
+Deploy Workflow
+```
+
+starts automatically after Build Workflow completes.
+
+## Important Condition
+
+```yaml
+if: ${{ github.event.workflow_run.conclusion == 'success' }}
+```
+
+This ensures deployment happens only if build is successful.
+
+# Workflow Flow
+
+```text
+Push Code
+   ↓
+Build Workflow
+   ↓
+Build Success
+   ↓
+Deploy Workflow
+```
+
+# Real-Time Example
+
+A company pipeline:
+
+```text
+1. Build application
+2. Run tests
+3. Security scan
+4. Deploy to staging
+5. Deploy to production
+```
+
+Each step can be separate workflow connected using chaining.
+
+# Example: Test Workflow After Build
+
+## Build Workflow
+
+```yaml
+name: Build Workflow
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Building project"
+```
+
+## Test Workflow
+
+```yaml
+name: Test Workflow
+
+on:
+  workflow_run:
+    workflows: ["Build Workflow"]
+    types:
+      - completed
+
+jobs:
+  test:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "Running tests"
+```
+
+# Example: Multi-Level Workflow Chaining
+
+```text
+Build Workflow
+      ↓
+Test Workflow
+      ↓
+Deploy Workflow
+```
+
+This creates a professional CI/CD pipeline.
+
+# Important `workflow_run` Options
+
+## `workflows`
+
+```yaml
+workflows: ["Build Workflow"]
+```
+
+Specifies which workflow should trigger this workflow.
+
+## `types`
+
+```yaml
+types:
+  - completed
+```
+
+Trigger after workflow completion.
+
+# Possible conclusions
+
+```text
+success
+failure
+cancelled
+skipped
+```
+
+# Advanced Example
+
+```yaml
+if: ${{ github.event.workflow_run.conclusion == 'success' }}
+```
+
+Deploy only after successful build.
+
+# Benefits
+
+Better pipeline organization.
+Easy maintenance.
+Independent workflows.
+Reusable CI/CD stages.
+Professional DevOps automation.
+
+# Limitations
+
+Too many chained workflows can become complex.
+Debugging may take time.
+Workflow dependencies should be managed carefully.
+
+# Best Practices
+
+Keep workflows modular.
+Use meaningful workflow names.
+Use success checks before deployment.
+Separate CI and CD workflows.
+Avoid circular workflow triggers.
+
+# Simple Definition
+
+**Workflow Chaining means automatically triggering one GitHub Actions workflow after another workflow finishes.**

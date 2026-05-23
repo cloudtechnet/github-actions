@@ -1,0 +1,777 @@
+# GitHub Actions – Working with Environment Variables
+
+Environment Variables in GitHub Actions are used to store and reuse values inside workflows.
+
+They help make workflows:
+
+* Reusable
+* Dynamic
+* Secure
+* Easy to maintain
+
+---
+
+# What are Environment Variables?
+
+Environment variables are key-value pairs.
+
+Example:
+
+```yaml
+env:
+  APP_NAME: MyApplication
+```
+
+Here:
+
+* Variable Name → `APP_NAME`
+* Value → `MyApplication`
+
+You can use it anywhere in the workflow.
+
+---
+
+# Why Use Environment Variables?
+
+Without variables:
+
+```yaml
+run: echo "Deploying MyApplication"
+```
+
+If application name changes, you must update everywhere.
+
+Using variables:
+
+```yaml
+env:
+  APP_NAME: MyApplication
+```
+
+```yaml
+run: echo "Deploying $APP_NAME"
+```
+
+Now changing one value updates everywhere.
+
+---
+
+# Benefits
+
+| Benefit         | Description                   |
+| --------------- | ----------------------------- |
+| Reusability     | Use same value multiple times |
+| Maintainability | Easy updates                  |
+| Security        | Store secrets securely        |
+| Flexibility     | Dynamic workflows             |
+| Cleaner YAML    | Avoid repeated values         |
+
+---
+
+# Types of Environment Variables in GitHub Actions
+
+| Type                     | Scope                      |
+| ------------------------ | -------------------------- |
+| Workflow-level           | Entire workflow            |
+| Job-level                | Specific job               |
+| Step-level               | Specific step              |
+| Default GitHub variables | Provided automatically     |
+| Secrets                  | Secure sensitive variables |
+
+---
+
+# 1. Workflow-Level Environment Variables
+
+Defined at top level.
+
+Available to:
+
+* All jobs
+* All steps
+
+---
+
+# Example
+
+```yaml
+name: Workflow Variables
+
+on: push
+
+env:
+  APP_NAME: MyApp
+  VERSION: v1.0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print Variables
+        run: |
+          echo "Application: $APP_NAME"
+          echo "Version: $VERSION"
+```
+
+---
+
+# Output
+
+```text
+Application: MyApp
+Version: v1.0
+```
+
+---
+
+# How It Works
+
+Variables declared under:
+
+```yaml
+env:
+```
+
+become globally available.
+
+---
+
+# 2. Job-Level Environment Variables
+
+Defined inside a specific job.
+
+Available only inside that job.
+
+---
+
+# Example
+
+```yaml
+name: Job Variables
+
+on: push
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+
+    env:
+      DB_NAME: production_db
+
+    steps:
+      - name: Show DB
+        run: echo "Database: $DB_NAME"
+
+  frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Try Access
+        run: echo "Database: $DB_NAME"
+```
+
+---
+
+# Result
+
+| Job      | Variable Available? |
+| -------- | ------------------- |
+| backend  | ✅ Yes               |
+| frontend | ❌ No                |
+
+---
+
+# 3. Step-Level Environment Variables
+
+Defined inside a specific step.
+
+Available only for that step.
+
+---
+
+# Example
+
+```yaml
+name: Step Variables
+
+on: push
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Step One
+        env:
+          TEMP_VAR: Hello
+
+        run: echo $TEMP_VAR
+
+      - name: Step Two
+        run: echo $TEMP_VAR
+```
+
+---
+
+# Output
+
+```text
+Hello
+```
+
+Second step:
+
+```text
+(empty)
+```
+
+Because variable scope ended.
+
+---
+
+# Variable Scope Hierarchy
+
+| Level    | Accessible In   |
+| -------- | --------------- |
+| Workflow | Entire workflow |
+| Job      | Specific job    |
+| Step     | Specific step   |
+
+---
+
+# 4. Using Variables in Different Operating Systems
+
+---
+
+# Linux/macOS
+
+```yaml
+run: echo $APP_NAME
+```
+
+---
+
+# Windows
+
+```yaml
+run: echo %APP_NAME%
+```
+
+or PowerShell:
+
+```yaml
+run: echo $env:APP_NAME
+```
+
+---
+
+# Example
+
+```yaml
+jobs:
+  windows-job:
+    runs-on: windows-latest
+
+    env:
+      APP: DemoApp
+
+    steps:
+      - run: echo %APP%
+```
+
+---
+
+# 5. Default GitHub Environment Variables
+
+GitHub automatically provides built-in variables.
+
+---
+
+# Common GitHub Variables
+
+| Variable            | Description                     |
+| ------------------- | ------------------------------- |
+| `GITHUB_REPOSITORY` | Repository name                 |
+| `GITHUB_REF`        | Branch/tag reference            |
+| `GITHUB_SHA`        | Commit SHA                      |
+| `GITHUB_ACTOR`      | Username who triggered workflow |
+| `GITHUB_WORKFLOW`   | Workflow name                   |
+
+---
+
+# Example
+
+```yaml
+name: GitHub Variables
+
+on: push
+
+jobs:
+  info:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print GitHub Variables
+        run: |
+          echo "Repository: $GITHUB_REPOSITORY"
+          echo "Branch: $GITHUB_REF"
+          echo "Triggered By: $GITHUB_ACTOR"
+```
+
+---
+
+# Sample Output
+
+```text
+Repository: my-org/demo
+Branch: refs/heads/main
+Triggered By: john
+```
+
+---
+
+# 6. Custom Variables Using vars Context
+
+GitHub allows repository-level variables.
+
+Navigate:
+
+```text
+Repository
+ → Settings
+ → Secrets and variables
+ → Actions
+ → Variables
+```
+
+---
+
+# Example Variable
+
+```text
+API_URL = https://api.example.com
+```
+
+Use in workflow:
+
+```yaml
+run: echo "${{ vars.API_URL }}"
+```
+
+---
+
+# Full Example
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo "${{ vars.API_URL }}"
+```
+
+---
+
+# 7. Secrets vs Environment Variables
+
+Important concept.
+
+---
+
+# Environment Variables
+
+Visible in logs.
+
+Example:
+
+```yaml
+env:
+  PASSWORD: mypassword
+```
+
+NOT secure.
+
+---
+
+# Secrets
+
+Encrypted and hidden.
+
+Store from:
+
+```text
+Settings
+ → Secrets and variables
+ → Actions
+ → Secrets
+```
+
+---
+
+# Example Secret
+
+```text
+DOCKER_PASSWORD
+```
+
+Use:
+
+```yaml
+${{ secrets.DOCKER_PASSWORD }}
+```
+
+---
+
+# Example
+
+```yaml
+jobs:
+  login:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Docker Login
+        run: docker login -u myuser -p ${{ secrets.DOCKER_PASSWORD }}
+```
+
+---
+
+# Important Difference
+
+| Feature              | env | secrets |
+| -------------------- | --- | ------- |
+| Visible in logs      | Yes | No      |
+| Encrypted            | No  | Yes     |
+| Secure for passwords | No  | Yes     |
+
+---
+
+# 8. Setting Environment Variables Dynamically
+
+You can create variables during runtime.
+
+---
+
+# Using GITHUB_ENV
+
+```yaml
+echo "NAME=CloudTech" >> $GITHUB_ENV
+```
+
+---
+
+# Example
+
+```yaml
+name: Dynamic Variables
+
+on: push
+
+jobs:
+  dynamic:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set Variable
+        run: echo "COURSE=DevOps" >> $GITHUB_ENV
+
+      - name: Use Variable
+        run: echo "Course Name: $COURSE"
+```
+
+---
+
+# Output
+
+```text
+Course Name: DevOps
+```
+
+---
+
+# How It Works
+
+Writing into:
+
+```text
+$GITHUB_ENV
+```
+
+creates environment variables for future steps.
+
+---
+
+# 9. Passing Variables Between Steps
+
+---
+
+# Example
+
+```yaml
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set Variable
+        run: echo "BUILD_VERSION=1.0" >> $GITHUB_ENV
+
+      - name: Read Variable
+        run: echo $BUILD_VERSION
+```
+
+---
+
+# 10. Using Expressions with Variables
+
+GitHub Actions supports expressions.
+
+---
+
+# Example
+
+```yaml
+env:
+  ENVIRONMENT: production
+```
+
+```yaml
+run: echo "${{ env.ENVIRONMENT }}"
+```
+
+---
+
+# Expression Syntax
+
+| Syntax                | Purpose                    |
+| --------------------- | -------------------------- |
+| `${{ env.NAME }}`     | Access env variable        |
+| `${{ secrets.NAME }}` | Access secret              |
+| `${{ vars.NAME }}`    | Access repository variable |
+
+---
+
+# 11. Environment Variables in Matrix Builds
+
+---
+
+# Example
+
+```yaml
+strategy:
+  matrix:
+    node-version: [16, 18]
+```
+
+Use:
+
+```yaml
+${{ matrix.node-version }}
+```
+
+---
+
+# Full Example
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16, 18]
+
+    steps:
+      - name: Show Version
+        run: echo "Node Version: ${{ matrix.node-version }}"
+```
+
+---
+
+# 12. Real-World CI/CD Example
+
+---
+
+# Scenario
+
+Deploy application using:
+
+* Environment
+* Secrets
+* Variables
+
+---
+
+# Workflow
+
+```yaml
+name: Production Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  APP_NAME: EcommerceApp
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: echo "Building $APP_NAME"
+
+      - name: Deploy
+        run: |
+          echo "Deploying to ${{ vars.SERVER_URL }}"
+          echo "Using API Key"
+
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+```
+
+---
+
+# Features Used
+
+| Feature         | Used For   |
+| --------------- | ---------- |
+| Workflow env    | App name   |
+| Repository vars | Server URL |
+| Secrets         | API key    |
+
+---
+
+# 13. Best Practices
+
+| Best Practice                      | Reason                 |
+| ---------------------------------- | ---------------------- |
+| Use secrets for passwords          | Security               |
+| Use workflow env for common values | Reusability            |
+| Keep variable names uppercase      | Standard practice      |
+| Avoid hardcoding                   | Easier maintenance     |
+| Use repository variables           | Centralized management |
+
+---
+
+# 14. Common Mistakes
+
+---
+
+# Mistake 1 – Using secrets in plain echo
+
+Bad:
+
+```yaml
+run: echo ${{ secrets.PASSWORD }}
+```
+
+May expose secret accidentally.
+
+---
+
+# Mistake 2 – Wrong variable syntax
+
+Wrong:
+
+```yaml
+echo ${APP_NAME}
+```
+
+Correct:
+
+```yaml
+echo $APP_NAME
+```
+
+---
+
+# Mistake 3 – Expecting step variable globally
+
+Step-level variables are not available outside that step.
+
+---
+
+# 15. Complete Advanced Example
+
+```yaml
+name: Advanced Environment Variables
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  APP_NAME: CloudStore
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      BUILD_ENV: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Display Variables
+        run: |
+          echo "App: $APP_NAME"
+          echo "Environment: $BUILD_ENV"
+          echo "Repository: $GITHUB_REPOSITORY"
+
+      - name: Set Dynamic Variable
+        run: echo "VERSION=2.0" >> $GITHUB_ENV
+
+      - name: Use Dynamic Variable
+        run: echo "Version: $VERSION"
+
+      - name: Use Secret
+        run: echo "Using secret securely"
+
+        env:
+          TOKEN: ${{ secrets.API_TOKEN }}
+```
+
+---
+
+# Summary
+
+| Variable Type | Scope                      |
+| ------------- | -------------------------- |
+| Workflow env  | Entire workflow            |
+| Job env       | Specific job               |
+| Step env      | Specific step              |
+| vars          | Repository-level variables |
+| secrets       | Secure encrypted values    |
+| GITHUB_ENV    | Dynamic variables          |
+
+---
+
+# Final Understanding
+
+Environment Variables in GitHub Actions are essential for:
+
+* Reusable workflows
+* Secure CI/CD pipelines
+* Dynamic automation
+* Clean workflow design
+* Production deployments
+
+They help manage:
+
+* Configuration values
+* API URLs
+* Application names
+* Secrets
+* Deployment environments
+* Runtime-generated values
